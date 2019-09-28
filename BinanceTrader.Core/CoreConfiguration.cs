@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BinanceTrader.Core
+﻿namespace BinanceTrader.Core
 {
     public class CoreConfiguration
     {
@@ -13,8 +9,6 @@ namespace BinanceTrader.Core
         public string FirstSymbol { get; set; }
 
         public string SecondSymbol { get; set; }
-
-        public string RedisConnectionString { get; set; }
 
         public double TradeMaxFee { get; set; }
 

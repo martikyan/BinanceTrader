@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Binance.Net.Objects;
-using Newtonsoft.Json;
 using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core.DataAccess
@@ -55,7 +52,7 @@ namespace BinanceTrader.Core.DataAccess
 
         public void SaveTrades(List<BinanceStreamTrade> trades)
         {
-            foreach(var trade in trades)
+            foreach (var trade in trades)
             {
                 SaveTrade(trade);
             }

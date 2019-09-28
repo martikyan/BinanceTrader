@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Binance.Net;
 using Binance.Net.Objects;
@@ -42,14 +40,11 @@ namespace BinanceTrader.Core.Services
                         .Select(recentTrade => BinanceModelExtensions.ToBinanceStreamTrade(recentTrade))
                         .ToList();
 
-                    foreach (var trade in trades)
-                    {
-                        if (trade.TradeTime < firstTradeDate)
-                        {
-                            break;
-                        }
+                    repo.SaveTrades(trades);
 
-                        repo.SaveTrade(trade);
+                    if (trades.Min(t => t.TradeTime) < firstTradeDate)
+                    {
+                        break;
                     }
 
                     tradeIdContinuation = trades.Min(t => t.TradeId) - tradeLimit;
