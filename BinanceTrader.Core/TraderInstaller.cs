@@ -20,7 +20,7 @@ namespace BinanceTrader.Core
         {
             container.Register(Component.For<HistoricalDataDownloader>());
             container.Register(Component.For<CoreConfiguration>().Instance(_config));
-            container.Register(Component.For<ITradeRepository>().ImplementedBy<TradeRepository>());
+            container.Register(Component.For<IRepository>().ImplementedBy<Repository>());
         }
     }
 }

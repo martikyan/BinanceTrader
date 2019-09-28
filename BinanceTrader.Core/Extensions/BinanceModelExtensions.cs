@@ -1,13 +1,15 @@
 ﻿using Binance.Net.Objects;
+using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core.Extensions
 {
     public static class BinanceModelExtensions
     {
-        public static BinanceStreamTrade ToBinanceStreamTrade(BinanceRecentTrade recentTrade)
+        public static Trade ToTradeModel(this BinanceRecentTrade recentTrade, string symbolPair)
         {
-            return new BinanceStreamTrade()
+            return new Trade()
             {
+                SymbolPair = symbolPair,
                 TradeId = recentTrade.Id,
                 TradeTime = recentTrade.Time,
                 Price = recentTrade.Price,
@@ -15,12 +17,13 @@ namespace BinanceTrader.Core.Extensions
             };
         }
 
-        public static BinanceRecentTrade ToBinanceRecentTrade(BinanceStreamTrade streamTrade)
+        public static Trade ToTradeModel(this BinanceStreamTrade streamTrade)
         {
-            return new BinanceRecentTrade()
+            return new Trade()
             {
-                Id = streamTrade.TradeId,
-                Time = streamTrade.TradeTime,
+                SymbolPair = streamTrade.Symbol,
+                TradeId = streamTrade.TradeId,
+                TradeTime = streamTrade.TradeTime,
                 Price = streamTrade.Price,
                 Quantity = streamTrade.Quantity,
             };

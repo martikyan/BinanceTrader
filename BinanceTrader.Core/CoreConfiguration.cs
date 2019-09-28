@@ -10,8 +10,8 @@
 
         public string SecondSymbol { get; set; }
 
-        public double TradeMaxFee { get; set; }
+        public double MaxTradeFeePercentage { get; set; }
 
-        public int TradeExpirationInSeconds { get; set; }
+        public int MemoryInSeconds { get; set; }
     }
 }

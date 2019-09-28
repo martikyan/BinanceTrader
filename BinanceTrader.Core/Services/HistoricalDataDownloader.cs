@@ -19,10 +19,11 @@ namespace BinanceTrader.Core.Services
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public async Task DownloadToRepositoryAsync(ITradeRepository repo)
+        public async Task DownloadToRepositoryAsync(IRepository repo)
         {
+            var symbolPair = SymbolUtilities.ConstructSymbolPair(_config.FirstSymbol, _config.SecondSymbol);
             var tradeLimit = 1000; // Maximum allowed by Binance.
-            var firstTradeDate = DateTime.UtcNow - TimeSpan.FromSeconds(_config.TradeExpirationInSeconds);
+            var firstTradeDate = DateTime.UtcNow - TimeSpan.FromSeconds(_config.MemoryInSeconds);
             var credentials = new ApiCredentials(_config.BinanceApiKey, _config.BinanceApiSecret);
             var clientOptions = new BinanceClientOptions()
             {
@@ -35,12 +36,15 @@ namespace BinanceTrader.Core.Services
 
                 while (true)
                 {
-                    var data = await client.GetHistoricalTradesAsync(SymbolUtilities.ConstructSymbolPair(_config.FirstSymbol, _config.SecondSymbol), tradeLimit, tradeIdContinuation);
+                    var data = await client.GetHistoricalTradesAsync(symbolPair, tradeLimit, tradeIdContinuation);
                     var trades = data.Data
-                        .Select(recentTrade => BinanceModelExtensions.ToBinanceStreamTrade(recentTrade))
+                        .Select(recentTrade => BinanceModelExtensions.ToTradeModel(recentTrade, symbolPair))
                         .ToList();
 
-                    repo.SaveTrades(trades);
+                    foreach (var trade in trades)
+                    {
+                        repo.AddOrUpdateTrade(trade);
+                    }
 
                     if (trades.Min(t => t.TradeTime) < firstTradeDate)
                     {

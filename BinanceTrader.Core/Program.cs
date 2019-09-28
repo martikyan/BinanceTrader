@@ -23,9 +23,8 @@ namespace BinanceTrader.Core
             {
                 container.Install(new TraderInstaller(config));
                 var dataFiller = container.Resolve<HistoricalDataDownloader>();
-                var repo = container.Resolve<ITradeRepository>();
+                var repo = container.Resolve<IRepository>();
                 dataFiller.DownloadToRepositoryAsync(repo).Wait();
-
                 manualResetEvent.WaitOne();
             }
         }
