@@ -19,9 +19,9 @@ namespace BinanceTrader.Core
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
             container.Register(Component.For<CoreConfiguration>().Instance(_config));
-            container.Register(Component.For<SmartStorage>());
             container.Register(Component.For<HistoricalDataDownloaderService>());
             container.Register(Component.For<IRepository>().ImplementedBy<Repository>());
+            container.Register(Component.For<ITradeRegistrarService>().ImplementedBy<TradeRegistrarService>());
         }
     }
 }

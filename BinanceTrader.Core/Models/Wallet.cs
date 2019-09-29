@@ -11,5 +11,7 @@ namespace BinanceTrader.Core.Models
         public string Symbol { get; set; }
 
         public decimal Balance { get; set; }
+
+        public long WalletCreatedFromTradeId { get; set; }
     }
 }

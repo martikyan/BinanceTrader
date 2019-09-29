@@ -6,7 +6,7 @@ namespace BinanceTrader.Core.Models
 {
     public class Trade
     {
-        public string SymbolPair { get; set; }
+        public SymbolPair SymbolPair { get; set; }
 
         public long TradeId { get; set; }
 

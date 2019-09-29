@@ -11,8 +11,8 @@ namespace BinanceTrader.Core.DataAccess
     // TODO MemoryCache is not working well
     public class Repository : IRepository
     {
-        private readonly MemoryCache _tradesCache;
         private readonly MemoryCache _usersCache;
+        private readonly MemoryCache _tradesCache;
         private readonly CoreConfiguration _config;
 
         public Repository(CoreConfiguration config)
@@ -42,6 +42,35 @@ namespace BinanceTrader.Core.DataAccess
             }
 
             _usersCache.Add(key, user, GetTimeoutPolicy());
+        }
+
+        public void DeleteTrade(long tradeId)
+        {
+            _tradesCache.Remove(tradeId.ToString());
+        }
+
+        public void DeleteUser(string userId)
+        {
+            _usersCache.Remove(userId);
+        }
+
+        public int GetCommonAmountLength(string symbol)
+        {
+            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol.ToUpper()).Take(100);
+            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol.ToUpper()).Take(100);
+
+            var a1 = r1.Select(t => t.Quantity);
+            var a2 = r2.Select(t => t.Price);
+            var union = a1.Union(a2).ToList();
+            if (union.Count < 10)
+            {
+                return 0;
+            }
+
+            var minLen = union.Min(a => ((double)a).ToString().Length);
+            var maxLen = union.Max(a => ((double)a).ToString().Length);
+
+            return (minLen + maxLen) / 2;
         }
 
         public Trade GetTradeById(long tradeId)

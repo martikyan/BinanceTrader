@@ -25,14 +25,8 @@ namespace BinanceTrader.Core
                 var dataFiller = container.Resolve<HistoricalDataDownloaderService>();
                 var repo = container.Resolve<IRepository>();
                 dataFiller.DownloadToRepositoryAsync().Wait();
-                dataFiller.RecognizedUserTrades += DataFiller_RecognizedUserTrades;
                 manualResetEvent.WaitOne();
             }
-        }
-
-        private static void DataFiller_RecognizedUserTrades(object sender, RecognizedUserTradesEventArgs e)
-        {
-            System.Console.WriteLine($"User with id {e.UserId} traded. Trade id: {e.TradeId}");
         }
     }
 }

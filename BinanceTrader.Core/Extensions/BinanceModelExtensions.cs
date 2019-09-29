@@ -5,7 +5,7 @@ namespace BinanceTrader.Core.Extensions
 {
     public static class BinanceModelExtensions
     {
-        public static Trade ToTradeModel(this BinanceRecentTrade recentTrade, string symbolPair)
+        public static Trade ToTradeModel(this BinanceRecentTrade recentTrade, SymbolPair symbolPair)
         {
             return new Trade()
             {
@@ -17,11 +17,11 @@ namespace BinanceTrader.Core.Extensions
             };
         }
 
-        public static Trade ToTradeModel(this BinanceStreamTrade streamTrade)
+        public static Trade ToTradeModel(this BinanceStreamTrade streamTrade, SymbolPair symbolPair)
         {
             return new Trade()
             {
-                SymbolPair = streamTrade.Symbol,
+                SymbolPair = symbolPair,
                 TradeId = streamTrade.TradeId,
                 TradeTime = streamTrade.TradeTime,
                 Price = streamTrade.Price,
