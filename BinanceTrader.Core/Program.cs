@@ -24,9 +24,15 @@ namespace BinanceTrader.Core
                 container.Install(new TraderInstaller(config));
                 var dataFiller = container.Resolve<HistoricalDataDownloader>();
                 var repo = container.Resolve<IRepository>();
-                dataFiller.DownloadToRepositoryAsync(repo).Wait();
+                dataFiller.DownloadToRepositoryAsync().Wait();
+                dataFiller.RecognizedUserTrades += DataFiller_RecognizedUserTrades;
                 manualResetEvent.WaitOne();
             }
+        }
+
+        private static void DataFiller_RecognizedUserTrades(object sender, RecognizedUserTradesEventArgs e)
+        {
+            System.Console.WriteLine($"User with id {e.UserId} traded. Trade id: {e.TradeId}");
         }
     }
 }

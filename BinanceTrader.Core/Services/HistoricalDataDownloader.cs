@@ -13,13 +13,21 @@ namespace BinanceTrader.Core.Services
     public class HistoricalDataDownloader
     {
         private readonly CoreConfiguration _config;
+        private readonly SmartStorage _smartStorage;
 
-        public HistoricalDataDownloader(CoreConfiguration config)
+        public event EventHandler<RecognizedUserTradesEventArgs> RecognizedUserTrades;
+
+        public HistoricalDataDownloader(CoreConfiguration config, SmartStorage smartStorage)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _smartStorage = smartStorage ?? throw new ArgumentNullException(nameof(smartStorage));
+
+            _smartStorage.RecognizedUserTraded += (s, e) => {
+                RecognizedUserTrades?.Invoke(s, e);
+            };
         }
 
-        public async Task DownloadToRepositoryAsync(IRepository repo)
+        public async Task DownloadToRepositoryAsync()
         {
             var symbolPair = SymbolUtilities.ConstructSymbolPair(_config.FirstSymbol, _config.SecondSymbol);
             var tradeLimit = 1000; // Maximum allowed by Binance.
@@ -43,7 +51,7 @@ namespace BinanceTrader.Core.Services
 
                     foreach (var trade in trades)
                     {
-                        repo.AddOrUpdateTrade(trade);
+                        _smartStorage.RegisterTrade(trade);
                     }
 
                     if (trades.Min(t => t.TradeTime) < firstTradeDate)

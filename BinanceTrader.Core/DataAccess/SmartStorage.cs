@@ -12,6 +12,8 @@ namespace BinanceTrader.Core.DataAccess
         private readonly CoreConfiguration _config;
         private readonly IRepository _repository;
 
+        public event EventHandler<RecognizedUserTradesEventArgs> RecognizedUserTraded;
+
         public SmartStorage(CoreConfiguration config, IRepository repository)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -27,46 +29,59 @@ namespace BinanceTrader.Core.DataAccess
 
             _repository.AddOrUpdateTrade(trade);
 
-            // TODO: do the same for seller
-            var buyerMaxBalance = trade.Price * trade.Quantity;
-            var buyerMinBalance = SubstractPercentage(buyerMaxBalance, _config.MaxTradeFeePercentage);
+            var quantity = trade.Quantity;
+            var qp = trade.Quantity * trade.Price;
 
-            var usersWithBalance = _repository.GetUsersWithBalanceInRange(buyerMinBalance, buyerMaxBalance, _config.FirstSymbol);
-            if (usersWithBalance.Count == 0)
+            var buyerMinBalance = SubstractPercentage(quantity, _config.MaxTradeFeePercentage);
+            var sellerMinBalance = SubstractPercentage(qp, _config.MaxTradeFeePercentage);
+
+            RegisterUser(buyerMinBalance, quantity, qp, _config.FirstSymbol, _config.SecondSymbol, trade);
+            RegisterUser(sellerMinBalance, qp, quantity, _config.SecondSymbol, _config.FirstSymbol, trade);
+        }
+
+        private void RegisterUser(decimal minBalance, decimal maxBalance, decimal balanceIfRec, string symbol, string symbolIfRec, Trade trade)
+        {
+            var users = _repository.GetUsersWithBalanceInRange(minBalance, maxBalance, _config.FirstSymbol);
+            if (users.Count == 0)
             {
-                // No buyers found, lets add them ourselves.
-                var user = new BinanceUser()
-                {
-                    Identifier = IdentificationUtilities.GetRandomIdentifier(),
-                    Wallets = new List<Wallet>(capacity: 1),
-                };
-
-                user.Wallets[0] = new Wallet()
-                {
-                    Symbol = _config.FirstSymbol,
-                    OwnerId = user.Identifier,
-                    Balance = buyerMaxBalance,
-                };
-
-                _repository.AddOrUpdateUser(user);
+                RegisterAsNewUser(symbol, maxBalance);
             }
             else
             {
-                
+                RecognizedUserTraded?.Invoke(this, RecognizedUserTradesEventArgs.Create(users[0].Identifier, trade.TradeId));
+                RegisterAsRecognizedUser(users[0], symbolIfRec, balanceIfRec);
             }
         }
 
-        //private RegisterAsRecognizedBuyer(BinanceUser recognizedBuyer, Trade trade)
-        //{ 
-        //    var newWallet = new Wallet()
-        //    {
-        //        OwnerId = recognizedBuyer.Identifier,
-        //        Symbol = _config.SecondSymbol,
-        //        Balance = trade.Quantity,
-        //    };
-        //    recognizedBuyer.Wallets[0] = newWallet; // overriding their wallet.
-        //    _repository.AddOrUpdateUser(user);
-        //}
+        private void RegisterAsNewUser(string symbol, decimal balance)
+        {
+            var user = new BinanceUser()
+            {
+                Identifier = IdentificationUtilities.GetRandomIdentifier(),
+                Wallets = new List<Wallet>(capacity: 1),
+            };
+
+            user.Wallets.Add(new Wallet()
+            {
+                Symbol = _config.FirstSymbol,
+                OwnerId = user.Identifier,
+                Balance = balance,
+            });
+
+            _repository.AddOrUpdateUser(user);
+        }
+
+        private void RegisterAsRecognizedUser(BinanceUser recognizedBuyer, string newSymbol, decimal newBalance)
+        {
+            var newWallet = new Wallet()
+            {
+                OwnerId = recognizedBuyer.Identifier,
+                Symbol = newSymbol,
+                Balance = newBalance,
+            };
+            recognizedBuyer.Wallets[0] = newWallet; // overriding their wallet.
+            _repository.AddOrUpdateUser(recognizedBuyer);
+        }
 
         private decimal SubstractPercentage(decimal fromValue, double percentage)
         {

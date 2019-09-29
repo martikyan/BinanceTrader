@@ -7,6 +7,7 @@ using BinanceTrader.Core.Utils;
 
 namespace BinanceTrader.Core.DataAccess
 {
+    // TODO MemoryCache is not working well
     public class Repository : IRepository
     {
         private readonly MemoryCache _tradesCache;
@@ -21,6 +22,7 @@ namespace BinanceTrader.Core.DataAccess
             _cachePolicy = new CacheItemPolicy()
             {
                 AbsoluteExpiration = DateTimeOffset.FromUnixTimeSeconds(_config.MemoryInSeconds),
+                Priority = CacheItemPriority.NotRemovable, // ToDo temp
             };
 
             _tradesCache = new MemoryCache(Constants.Names.TradeCacheName);
@@ -35,17 +37,18 @@ namespace BinanceTrader.Core.DataAccess
                 _tradesCache.Remove(key);
             }
 
+            Console.WriteLine("Adding trade to trades cache");
             _tradesCache.Add(key, trade, _cachePolicy);
         }
 
         public void AddOrUpdateUser(BinanceUser user)
         {
             var key = user.Identifier;
-            if (_tradesCache.Get(key) != null)
+            if (_usersCache.Get(key) != null)
             {
-                _tradesCache.Remove(key);
+                _usersCache.Remove(key);
             }
-
+            Console.WriteLine("Adding user to users cache");
             _usersCache.Add(key, user, _cachePolicy);
         }
 
@@ -61,8 +64,9 @@ namespace BinanceTrader.Core.DataAccess
 
         public List<BinanceUser> GetUsersWithBalanceInRange(decimal lBalance, decimal hBalance, string symbol)
         {
-            var allUsers = _usersCache.GetValues(null).Values as ICollection<BinanceUser>;
-
+            Console.WriteLine($"UsersCache had {_usersCache.ToList().Count()} elementes");
+            var allUsers = _usersCache.Cast<BinanceUser>();
+            Console.WriteLine($"All users had {allUsers.Count()} people");
             return allUsers.Where(u => u.Wallets.Any(w =>
                 string.Equals(w.Symbol, symbol, StringComparison.OrdinalIgnoreCase) &&
                 IsInRange(w.Balance, lBalance, hBalance)))
