@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BinanceTrader.Core.Models
+﻿namespace BinanceTrader.Core.Models
 {
     public class Wallet
     {

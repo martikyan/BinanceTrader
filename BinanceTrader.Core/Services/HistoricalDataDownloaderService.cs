@@ -3,10 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Binance.Net;
 using Binance.Net.Objects;
-using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Extensions;
 using BinanceTrader.Core.Models;
-using BinanceTrader.Core.Utils;
 using CryptoExchange.Net.Authentication;
 
 namespace BinanceTrader.Core.Services

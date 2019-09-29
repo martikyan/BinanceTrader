@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+using System.Linq;
+using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using BinanceTrader.Core.Utils;
-using BinanceTrader.Core.DataAccess;
-using System.Linq;
 
 namespace BinanceTrader.Core.Services
 {
@@ -29,7 +27,7 @@ namespace BinanceTrader.Core.Services
                 TradeId = trade.TradeId,
                 AssociatedUserIds = new List<string>(),
             };
-            
+
             var quantity = trade.Quantity;
             var qp = trade.Quantity * trade.Price;
 

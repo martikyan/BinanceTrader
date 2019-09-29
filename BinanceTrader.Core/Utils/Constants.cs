@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BinanceTrader.Core.Utils
+﻿namespace BinanceTrader.Core.Utils
 {
     public static class Constants
     {

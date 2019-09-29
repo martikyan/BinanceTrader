@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core
@@ -10,7 +8,7 @@ namespace BinanceTrader.Core
         public long TradeId { get; set; }
 
         public bool IsTradeRegistered { get; set; }
-        
+
         public bool IsComplexTrade { get; set; }
 
         public bool IsBuyerRegistered { get; set; }

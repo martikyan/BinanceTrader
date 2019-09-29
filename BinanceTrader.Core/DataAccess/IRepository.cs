@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Binance.Net.Objects;
 using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core.DataAccess
