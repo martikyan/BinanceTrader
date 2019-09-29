@@ -10,6 +10,8 @@
 
         public string SecondSymbol { get; set; }
 
+        public string TargetCurrencySymbol { get; set; }
+
         public double MaxTradeFeePercentage { get; set; }
 
         public int MemoryInSeconds { get; set; }
