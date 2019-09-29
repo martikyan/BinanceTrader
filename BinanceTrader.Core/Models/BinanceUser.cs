@@ -10,6 +10,10 @@ namespace BinanceTrader.Core.Models
 
         public double? FeePercentage { get; set; }
 
-        public List<Wallet> Wallets { get; set; }
+        public Wallet CurrentWallet { get; set; }
+
+        public List<Wallet> WalletsHistory { get; set; }
+
+        public List<long> TradeIds { get; set; }
     }
 }

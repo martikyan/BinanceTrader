@@ -110,16 +110,18 @@ namespace BinanceTrader.Core.Services
             var user = new BinanceUser()
             {
                 Identifier = IdentificationUtilities.GetRandomIdentifier(),
-                Wallets = new List<Wallet>(capacity: 1),
+                TradeIds = new List<long>(capacity: 1),
+                WalletsHistory = new List<Wallet>(),
             };
 
-            user.Wallets.Add(new Wallet()
+            user.TradeIds.Add(context.TradeId);
+            user.CurrentWallet = new Wallet()
             {
                 Symbol = symbol,
                 OwnerId = user.Identifier,
                 Balance = balance,
                 WalletCreatedFromTradeId = context.TradeId,
-            });
+            };
 
             _repository.AddOrUpdateUser(user);
             return context;
@@ -129,10 +131,11 @@ namespace BinanceTrader.Core.Services
         {
             foreach (var user in users)
             {
-                bool isOldBuyerSelling = user.Wallets.Any(w => string.Equals(context.BuyingPair.Symbol, w.Symbol, StringComparison.OrdinalIgnoreCase) && w.Balance != 0m);
+                bool isOldBuyerSelling = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol, StringComparison.OrdinalIgnoreCase) && user.CurrentWallet.Balance != 0m;
                 var pair = isOldBuyerSelling ? context.SellingPair : context.BuyingPair;
 
-                var newWallet = new Wallet()
+                user.WalletsHistory.Add(user.CurrentWallet);
+                user.CurrentWallet = new Wallet()
                 {
                     OwnerId = user.Identifier,
                     Symbol = pair.Symbol,
@@ -140,9 +143,9 @@ namespace BinanceTrader.Core.Services
                     WalletCreatedFromTradeId = context.TradeId,
                 };
 
-                user.Wallets.Clear();
-                user.Wallets.Add(newWallet);
+                user.TradeIds.Add(context.TradeId);
                 _repository.AddOrUpdateUser(user);
+                RecognizedUserTraded?.Invoke(this, RecognizedUserTradesEventArgs.Create(user.Identifier, context.TradeId));
             }
 
             context.AssociatedUserIds.AddRange(users.Select(u => u.Identifier));
