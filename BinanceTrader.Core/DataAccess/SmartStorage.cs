@@ -41,7 +41,7 @@ namespace BinanceTrader.Core.DataAccess
 
         private void RegisterUser(decimal minBalance, decimal maxBalance, decimal balanceIfRec, string symbol, string symbolIfRec, Trade trade)
         {
-            var users = _repository.GetUsersWithBalanceInRange(minBalance, maxBalance, _config.FirstSymbol);
+            var users = _repository.GetUsersWithBalanceInRange(minBalance, maxBalance, symbol);
             if (users.Count == 0)
             {
                 RegisterAsNewUser(symbol, maxBalance);
@@ -63,7 +63,7 @@ namespace BinanceTrader.Core.DataAccess
 
             user.Wallets.Add(new Wallet()
             {
-                Symbol = _config.FirstSymbol,
+                Symbol = symbol,
                 OwnerId = user.Identifier,
                 Balance = balance,
             });

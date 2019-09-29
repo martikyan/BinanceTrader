@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
@@ -12,19 +13,11 @@ namespace BinanceTrader.Core.DataAccess
     {
         private readonly MemoryCache _tradesCache;
         private readonly MemoryCache _usersCache;
-        private readonly CacheItemPolicy _cachePolicy;
         private readonly CoreConfiguration _config;
 
         public Repository(CoreConfiguration config)
         {
             _config = config ?? throw new System.ArgumentNullException(nameof(config));
-
-            _cachePolicy = new CacheItemPolicy()
-            {
-                AbsoluteExpiration = DateTimeOffset.FromUnixTimeSeconds(_config.MemoryInSeconds),
-                Priority = CacheItemPriority.NotRemovable, // ToDo temp
-            };
-
             _tradesCache = new MemoryCache(Constants.Names.TradeCacheName);
             _usersCache = new MemoryCache(Constants.Names.UserCacheName);
         }
@@ -37,8 +30,7 @@ namespace BinanceTrader.Core.DataAccess
                 _tradesCache.Remove(key);
             }
 
-            Console.WriteLine("Adding trade to trades cache");
-            _tradesCache.Add(key, trade, _cachePolicy);
+            _tradesCache.Add(key, trade, GetTimeoutPolicy());
         }
 
         public void AddOrUpdateUser(BinanceUser user)
@@ -48,8 +40,8 @@ namespace BinanceTrader.Core.DataAccess
             {
                 _usersCache.Remove(key);
             }
-            Console.WriteLine("Adding user to users cache");
-            _usersCache.Add(key, user, _cachePolicy);
+
+            _usersCache.Add(key, user, GetTimeoutPolicy());
         }
 
         public Trade GetTradeById(long tradeId)
@@ -64,13 +56,22 @@ namespace BinanceTrader.Core.DataAccess
 
         public List<BinanceUser> GetUsersWithBalanceInRange(decimal lBalance, decimal hBalance, string symbol)
         {
-            Console.WriteLine($"UsersCache had {_usersCache.ToList().Count()} elementes");
-            var allUsers = _usersCache.Cast<BinanceUser>();
-            Console.WriteLine($"All users had {allUsers.Count()} people");
+            var allUsers = _usersCache.Select(u => u.Value).Cast<BinanceUser>();
+
             return allUsers.Where(u => u.Wallets.Any(w =>
                 string.Equals(w.Symbol, symbol, StringComparison.OrdinalIgnoreCase) &&
                 IsInRange(w.Balance, lBalance, hBalance)))
                 .ToList();
+        }
+
+        private CacheItemPolicy GetTimeoutPolicy()
+        {
+            var policy = new CacheItemPolicy()
+            {
+                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(_config.MemoryInSeconds),
+            };
+
+            return policy;
         }
 
         private bool IsInRange(decimal number, decimal low, decimal high)

@@ -22,7 +22,7 @@ namespace BinanceTrader.Core
             using (var container = new WindsorContainer())
             {
                 container.Install(new TraderInstaller(config));
-                var dataFiller = container.Resolve<HistoricalDataDownloader>();
+                var dataFiller = container.Resolve<HistoricalDataDownloaderService>();
                 var repo = container.Resolve<IRepository>();
                 dataFiller.DownloadToRepositoryAsync().Wait();
                 dataFiller.RecognizedUserTrades += DataFiller_RecognizedUserTrades;

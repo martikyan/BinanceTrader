@@ -10,14 +10,14 @@ using CryptoExchange.Net.Authentication;
 
 namespace BinanceTrader.Core.Services
 {
-    public class HistoricalDataDownloader
+    public class HistoricalDataDownloaderService
     {
         private readonly CoreConfiguration _config;
         private readonly SmartStorage _smartStorage;
 
         public event EventHandler<RecognizedUserTradesEventArgs> RecognizedUserTrades;
 
-        public HistoricalDataDownloader(CoreConfiguration config, SmartStorage smartStorage)
+        public HistoricalDataDownloaderService(CoreConfiguration config, SmartStorage smartStorage)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _smartStorage = smartStorage ?? throw new ArgumentNullException(nameof(smartStorage));
