@@ -12,13 +12,16 @@ namespace BinanceTrader.Core.DataAccess
     {
         private readonly MemoryCache _usersCache;
         private readonly MemoryCache _tradesCache;
+        private readonly MemoryCache _commonAmountCache;
+
         private readonly CoreConfiguration _config;
 
         public Repository(CoreConfiguration config)
         {
             _config = config ?? throw new System.ArgumentNullException(nameof(config));
-            _tradesCache = new MemoryCache(Constants.Names.TradeCacheName);
-            _usersCache = new MemoryCache(Constants.Names.UserCacheName);
+            _tradesCache = new MemoryCache(nameof(_tradesCache));
+            _usersCache = new MemoryCache(nameof(_usersCache));
+            _commonAmountCache = new MemoryCache(nameof(_commonAmountCache));
         }
 
         public void AddOrUpdateTrade(Trade trade)
@@ -55,6 +58,11 @@ namespace BinanceTrader.Core.DataAccess
 
         public int GetCommonAmountLength(string symbol)
         {
+            if (_commonAmountCache[symbol] != null)
+            {
+                return (int) _commonAmountCache[symbol];
+            }
+
             var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(100);
             var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(100);
 
@@ -65,15 +73,18 @@ namespace BinanceTrader.Core.DataAccess
             unionList.AddRange(a1);
             unionList.AddRange(a2);
 
-            if (unionList.Count < 10)
+            if (unionList.Count < 50)
             {
                 return 0;
             }
 
             var minLen = unionList.Min(a => ((double)a).ToString().Length);
             var maxLen = unionList.Max(a => ((double)a).ToString().Length);
+            var commonLength = (minLen + maxLen) / 2;
+            
+            _commonAmountCache[symbol] = commonLength;
 
-            return (minLen + maxLen) / 2;
+            return commonLength;
         }
 
         public Trade GetTradeById(long tradeId)
