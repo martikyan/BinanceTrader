@@ -55,19 +55,23 @@ namespace BinanceTrader.Core.DataAccess
 
         public int GetCommonAmountLength(string symbol)
         {
-            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol.ToUpper()).Take(100);
-            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol.ToUpper()).Take(100);
+            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(100);
+            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(100);
 
             var a1 = r1.Select(t => t.Quantity);
             var a2 = r2.Select(t => t.Price);
-            var union = a1.Union(a2).ToList();
-            if (union.Count < 10)
+
+            var unionList = new List<decimal>();
+            unionList.AddRange(a1);
+            unionList.AddRange(a2);
+
+            if (unionList.Count < 10)
             {
                 return 0;
             }
 
-            var minLen = union.Min(a => ((double)a).ToString().Length);
-            var maxLen = union.Max(a => ((double)a).ToString().Length);
+            var minLen = unionList.Min(a => ((double)a).ToString().Length);
+            var maxLen = unionList.Max(a => ((double)a).ToString().Length);
 
             return (minLen + maxLen) / 2;
         }
