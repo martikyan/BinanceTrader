@@ -9,12 +9,10 @@ namespace BinanceTrader.Core.Services
     public class UserProcessingService
     {
         private readonly IRepository _repository;
-        private readonly CoreConfiguration _config;
 
-        public UserProcessingService(IRepository repo, CoreConfiguration config)
+        public UserProcessingService(IRepository repo)
         {
             _repository = repo ?? throw new ArgumentNullException(nameof(repo));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public UserProfitReport GetUserProfit(string userId)

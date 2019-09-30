@@ -3,22 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
 using BinanceTrader.Core.Models;
-using BinanceTrader.Core.Utils;
 
 namespace BinanceTrader.Core.DataAccess
 {
-    // TODO MemoryCache is not working well
     public class Repository : IRepository
     {
         private readonly MemoryCache _usersCache;
         private readonly MemoryCache _tradesCache;
         private readonly MemoryCache _commonAmountCache;
-
         private readonly CoreConfiguration _config;
 
         public Repository(CoreConfiguration config)
         {
-            _config = config ?? throw new System.ArgumentNullException(nameof(config));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _tradesCache = new MemoryCache(nameof(_tradesCache));
             _usersCache = new MemoryCache(nameof(_usersCache));
             _commonAmountCache = new MemoryCache(nameof(_commonAmountCache));
@@ -60,7 +57,7 @@ namespace BinanceTrader.Core.DataAccess
         {
             if (_commonAmountCache[symbol] != null)
             {
-                return (int) _commonAmountCache[symbol];
+                return (int)_commonAmountCache[symbol];
             }
 
             var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(100);
@@ -81,7 +78,7 @@ namespace BinanceTrader.Core.DataAccess
             var minLen = unionList.Min(a => ((double)a).ToString().Length);
             var maxLen = unionList.Max(a => ((double)a).ToString().Length);
             var commonLength = (minLen + maxLen) / 2;
-            
+
             _commonAmountCache[symbol] = commonLength;
 
             return commonLength;
