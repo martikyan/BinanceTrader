@@ -9,6 +9,9 @@ using CryptoExchange.Net.Authentication;
 
 namespace BinanceTrader.Core.Services
 {
+    /// <summary>
+    /// TODO delete the downloader service. It contains bugs and it's hard to syncronize with realtime listener.
+    /// </summary>
     public class HistoricalDataDownloaderService
     {
         private readonly CoreConfiguration _config;
@@ -54,6 +57,7 @@ namespace BinanceTrader.Core.Services
 
                     tradeIdContinuation = trades.Min(t => t.TradeId) - _tradeRetrievalLimit;
                 }
+                Console.WriteLine("Done downloading historical data.");
             }
         }
     }

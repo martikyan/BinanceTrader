@@ -2,7 +2,7 @@
 
 namespace BinanceTrader.Core.Models
 {
-    public class UserProfit
+    public class UserProfitReport
     {
         public string CurrencySymbol { get; set; }
 
@@ -15,6 +15,8 @@ namespace BinanceTrader.Core.Models
         public int FailedTradesCount { get; set; }
 
         public TimeSpan AverageTradeThreshold { get; set; }
+
+        public TimeSpan MinimalTradeThreshold { get; set; }
 
         public decimal StartBalance { get; set; }
 

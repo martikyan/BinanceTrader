@@ -86,7 +86,7 @@ namespace BinanceTrader.Core.DataAccess
         {
             var allUsers = _usersCache.Select(u => u.Value).Cast<BinanceUser>();
 
-            return allUsers.Where(u => string.Equals(u.CurrentWallet.Symbol, symbol, StringComparison.OrdinalIgnoreCase) &&
+            return allUsers.Where(u => string.Equals(u.CurrentWallet.Symbol, symbol) &&
                 IsInRange(u.CurrentWallet.Balance, lBalance, hBalance))
                 .ToList();
         }

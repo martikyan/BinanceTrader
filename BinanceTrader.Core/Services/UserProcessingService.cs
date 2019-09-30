@@ -17,15 +17,31 @@ namespace BinanceTrader.Core.Services
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public UserProfit GetUserProfit(string userId)
+        public void UpdateUserTradeFee(string userId)
+        {
+            var user = _repository.GetUserById(userId);
+            UpdateUserTradeFee(user);
+        }
+
+        public void UpdateUserTradeFee(BinanceUser user)
+        {
+            var trades = new List<Trade>(capacity: user.TradeIds.Count);
+            foreach (var tradeId in user.TradeIds.OrderBy(tId => tId))
+            {
+                var trade = _repository.GetTradeById(tradeId);
+                trades.Add(trade);
+            }
+        }
+
+        public UserProfitReport GetUserProfit(string userId)
         {
             var user = _repository.GetUserById(userId);
             return GetUserProfit(user);
         }
 
-        public UserProfit GetUserProfit(BinanceUser user)
+        public UserProfitReport GetUserProfit(BinanceUser user)
         {
-            var profit = new UserProfit()
+            var profit = new UserProfitReport()
             {
                 TradesCount = user.TradeIds.Count,
                 CurrencySymbol = _config.TargetCurrencySymbol,
@@ -55,6 +71,7 @@ namespace BinanceTrader.Core.Services
                 diffList.Add(trades[i].TradeTime - trades[i - 1].TradeTime);
             }
             profit.AverageTradeThreshold = TimeSpan.FromSeconds(diffList.Average(diff => diff.TotalSeconds));
+            profit.MinimalTradeThreshold = TimeSpan.FromSeconds(diffList.Min(diff => diff.TotalSeconds));
 
             var startBalance = wallets.First().Balance;
             var endBalance = wallets.Last().Balance;
@@ -75,6 +92,8 @@ namespace BinanceTrader.Core.Services
                     {
                         profit.FailedTradesCount++;
                     }
+
+                    lastBalance = wallet.Balance;
                 }
             }
 

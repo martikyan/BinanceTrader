@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
@@ -43,6 +44,18 @@ namespace BinanceTrader.Core.Services
 
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
+
+            var buyerMin = SubstractPercentage(context.BuyingPair.Amount, _config.MaxTradeFeePercentage);
+            var sellerMin = SubstractPercentage(context.SellingPair.Amount, _config.MaxTradeFeePercentage);
+
+            var buyerUsers = _repository.GetUsersWithBalanceInRange(buyerMin, context.BuyingPair.Amount, context.BuyingPair.Symbol);
+            var sellerUsers = _repository.GetUsersWithBalanceInRange(sellerMin, context.SellingPair.Amount, context.SellingPair.Symbol);
+
+            if (buyerUsers.Count != 0 && sellerUsers.Count != 0)
+            {
+                // Please debug me
+                Debugger.Break();
+            }
 
             context = RegisterBuyerFromContext(context);
 

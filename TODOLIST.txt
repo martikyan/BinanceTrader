@@ -1,0 +1,7 @@
+1. All orderby -> sort
+2. I think the if statement in the TradeRegsitrar which checks if the buyer account has associates then we don't register seller is wrong
+	we should register both jyuxer.
+3. In profitability checker we should consied whether the initial buyer or initial seller is the account we need
+4. In that case only registering a single account from start may be done ? -_-
+5. Historical downloader contains bugs and it's hard to sync with live trading system
+6. Write the actual trader

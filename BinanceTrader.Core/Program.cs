@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Services;
@@ -12,6 +13,7 @@ namespace BinanceTrader.Core
     {
         private static IRepository repo;
         private static UserProcessingService ups;
+        private static double MaximalProfitYet = -1.0;
 
         public static void Main(string[] args)
         {
@@ -47,16 +49,24 @@ namespace BinanceTrader.Core
             }
 
             var userProfit = ups.GetUserProfit(user);
-            if (userProfit.ProfitPercentage < 0.5)
+            if (userProfit.ProfitPercentage < MaximalProfitYet)
             {
                 return;
             }
 
+            if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(10))
+            {
+                return;
+            }
+
+            MaximalProfitYet = userProfit.ProfitPercentage;
+
             Console.WriteLine($"==============User detected with positive profit==============");
             Console.WriteLine($"User ID : {user.Identifier}");
             Console.WriteLine($"User profit: {userProfit.ProfitPercentage}%");
-            Console.WriteLine($"User trades count: {userProfit.TradesCount}");
+            Console.WriteLine($"User trades count: {userProfit.TradesCount} -> {string.Join("->", user.WalletsHistory.Select(w => $"{w.Balance} {w.Symbol}"))}");
             Console.WriteLine($"Average trade threshold seconds: {userProfit.AverageTradeThreshold.TotalSeconds}");
+            Console.WriteLine($"Minimal trade threshold seconds: {userProfit.MinimalTradeThreshold.TotalSeconds}");
             Console.WriteLine($"Success count: {userProfit.SucceededTradesCount}");
             Console.WriteLine($"Failed count: {userProfit.FailedTradesCount}");
             Console.WriteLine($"Start balance: {userProfit.StartBalance}{userProfit.CurrencySymbol}");
