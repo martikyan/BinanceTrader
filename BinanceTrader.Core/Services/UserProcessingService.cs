@@ -44,7 +44,7 @@ namespace BinanceTrader.Core.Services
             var profit = new UserProfitReport()
             {
                 TradesCount = user.TradeIds.Count,
-                CurrencySymbol = _config.TargetCurrencySymbol,
+                CurrencySymbol = user.WalletsHistory.First().Symbol,
             };
 
             var trades = new List<Trade>(capacity: user.TradeIds.Count);
@@ -57,11 +57,16 @@ namespace BinanceTrader.Core.Services
             var wallets = new List<Wallet>(user.WalletsHistory);
             wallets.Add(user.CurrentWallet);
 
-            // Sorting and filtering wallets. // TODO sorting should not depend on tradeId
-            wallets = wallets.Where(w => w.Symbol == _config.TargetCurrencySymbol).OrderBy(w => w.WalletCreatedFromTradeId).ToList();
-
-            if (wallets.Count == 0)
+            if (wallets.Count == 1)
             {
+                profit.IsFullReport = false;
+                return profit;
+            }
+
+            wallets = wallets.OrderBy(w => w.WalletCreatedFromTradeId).ToList();
+            if (wallets.First().Symbol != wallets.Last().Symbol)
+            {
+                profit.IsFullReport = false;
                 return profit;
             }
 
@@ -81,7 +86,7 @@ namespace BinanceTrader.Core.Services
 
             {
                 var lastBalance = startBalance;
-                foreach (var wallet in wallets)
+                foreach (var wallet in wallets.Where(w => w.Symbol == profit.CurrencySymbol))
                 {
                     var profitPercentage = CalculateProfitPercentage(lastBalance, wallet.Balance);
                     if (profitPercentage > 0.0)
@@ -98,6 +103,7 @@ namespace BinanceTrader.Core.Services
             }
 
             profit.ProfitPercentage = CalculateProfitPercentage(startBalance, endBalance);
+            profit.IsFullReport = true;
 
             return profit;
         }

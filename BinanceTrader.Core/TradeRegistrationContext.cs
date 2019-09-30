@@ -19,6 +19,8 @@ namespace BinanceTrader.Core
 
         public SymbolAmountPair BuyingPair { get; set; }
 
-        public List<string> AssociatedUserIds { get; set; }
+        public List<BinanceUser> BuyerAssociatedUsers { get; set; }
+
+        public List<BinanceUser> SellerAssociatedUsers { get; set; }
     }
 }

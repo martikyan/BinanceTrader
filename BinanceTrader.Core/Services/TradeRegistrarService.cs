@@ -26,7 +26,6 @@ namespace BinanceTrader.Core.Services
             var context = new TradeRegistrationContext()
             {
                 TradeId = trade.TradeId,
-                AssociatedUserIds = new List<string>(),
             };
 
             var quantity = trade.Quantity;
@@ -48,22 +47,15 @@ namespace BinanceTrader.Core.Services
             var buyerMin = SubstractPercentage(context.BuyingPair.Amount, _config.MaxTradeFeePercentage);
             var sellerMin = SubstractPercentage(context.SellingPair.Amount, _config.MaxTradeFeePercentage);
 
-            var buyerUsers = _repository.GetUsersWithBalanceInRange(buyerMin, context.BuyingPair.Amount, context.BuyingPair.Symbol);
-            var sellerUsers = _repository.GetUsersWithBalanceInRange(sellerMin, context.SellingPair.Amount, context.SellingPair.Symbol);
+            var buyerAssociates = _repository.GetUsersWithBalanceInRange(buyerMin, context.BuyingPair.Amount, context.BuyingPair.Symbol);
+            var sellerAssociates = _repository.GetUsersWithBalanceInRange(sellerMin, context.SellingPair.Amount, context.SellingPair.Symbol);
 
-            if (buyerUsers.Count != 0 && sellerUsers.Count != 0)
-            {
-                // Please debug me
-                Debugger.Break();
-            }
+            context.BuyerAssociatedUsers = buyerAssociates;
+            context.SellerAssociatedUsers = sellerAssociates;
 
             context = RegisterBuyerFromContext(context);
-
-            if (context.AssociatedUserIds.Count == 0)
-            {
-                RegisterSellerFromContext(context);
-            }
-
+            context = RegisterSellerFromContext(context);
+            
             return context;
         }
 
@@ -84,8 +76,7 @@ namespace BinanceTrader.Core.Services
 
         private TradeRegistrationContext RegisterBuyerFromContext(TradeRegistrationContext context)
         {
-            var minBalance = SubstractPercentage(context.BuyingPair.Amount, _config.MaxTradeFeePercentage);
-            var users = _repository.GetUsersWithBalanceInRange(minBalance, context.BuyingPair.Amount, context.BuyingPair.Symbol);
+            var users = context.BuyerAssociatedUsers;
             if (users.Count == 0)
             {
                 context = RegisterNewUser(context, context.BuyingPair.Symbol, context.BuyingPair.Amount);
@@ -101,8 +92,7 @@ namespace BinanceTrader.Core.Services
 
         private TradeRegistrationContext RegisterSellerFromContext(TradeRegistrationContext context)
         {
-            var minBalance = SubstractPercentage(context.SellingPair.Amount, _config.MaxTradeFeePercentage);
-            var users = _repository.GetUsersWithBalanceInRange(minBalance, context.SellingPair.Amount, context.SellingPair.Symbol);
+            var users = context.SellerAssociatedUsers;
             if (users.Count == 0)
             {
                 RegisterNewUser(context, context.SellingPair.Symbol, context.SellingPair.Amount);
@@ -142,7 +132,7 @@ namespace BinanceTrader.Core.Services
         {
             foreach (var user in users)
             {
-                bool isOldBuyerSelling = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol, StringComparison.OrdinalIgnoreCase) && user.CurrentWallet.Balance != 0m;
+                bool isOldBuyerSelling = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol);
                 var pair = isOldBuyerSelling ? context.SellingPair : context.BuyingPair;
 
                 user.WalletsHistory.Add(user.CurrentWallet);
@@ -159,7 +149,6 @@ namespace BinanceTrader.Core.Services
                 RecognizedUserTraded?.Invoke(this, RecognizedUserTradesEventArgs.Create(user.Identifier, context.TradeId));
             }
 
-            context.AssociatedUserIds.AddRange(users.Select(u => u.Identifier));
             return context;
         }
 

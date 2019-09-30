@@ -21,5 +21,7 @@ namespace BinanceTrader.Core.Models
         public decimal StartBalance { get; set; }
 
         public decimal EndBalance { get; set; }
+
+        public bool IsFullReport { get; set; }
     }
 }

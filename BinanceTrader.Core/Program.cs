@@ -43,7 +43,7 @@ namespace BinanceTrader.Core
         private static void Registrar_RecognizedUserTraded(object sender, RecognizedUserTradesEventArgs e)
         {
             var user = repo.GetUserById(e.UserId);
-            if (user.TradeIds.Count < 5)
+            if (user.TradeIds.Count < 3)
             {
                 return;
             }
@@ -54,17 +54,19 @@ namespace BinanceTrader.Core
                 return;
             }
 
-            if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(10))
+            if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(10) || userProfit.IsFullReport == false)
             {
                 return;
             }
 
             MaximalProfitYet = userProfit.ProfitPercentage;
 
+            user.WalletsHistory.Add(user.CurrentWallet);
+            user.WalletsHistory = user.WalletsHistory.OrderBy(w => w.WalletCreatedFromTradeId).ToList();
             Console.WriteLine($"==============User detected with positive profit==============");
             Console.WriteLine($"User ID : {user.Identifier}");
             Console.WriteLine($"User profit: {userProfit.ProfitPercentage}%");
-            Console.WriteLine($"User trades count: {userProfit.TradesCount} -> {string.Join("->", user.WalletsHistory.Select(w => $"{w.Balance} {w.Symbol}"))}");
+            Console.WriteLine($"User trades count: {userProfit.TradesCount} | {string.Join("->", user.WalletsHistory.Select(w => $"{w.Balance} {w.Symbol}"))}");
             Console.WriteLine($"Average trade threshold seconds: {userProfit.AverageTradeThreshold.TotalSeconds}");
             Console.WriteLine($"Minimal trade threshold seconds: {userProfit.MinimalTradeThreshold.TotalSeconds}");
             Console.WriteLine($"Success count: {userProfit.SucceededTradesCount}");
