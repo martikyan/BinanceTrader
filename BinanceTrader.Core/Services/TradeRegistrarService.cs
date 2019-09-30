@@ -7,12 +7,12 @@ using BinanceTrader.Core.Utils;
 
 namespace BinanceTrader.Core.Services
 {
-    public class TradeRegistrarService : ITradeRegistrarService
+    public class TradeRegistrarService
     {
         private readonly CoreConfiguration _config;
         private readonly IRepository _repository;
 
-        public event EventHandler<RecognizedUserTradesEventArgs> RecognizedUserTraded;
+        public event EventHandler<UserTradedEventArgs> UserTraded;
 
         public TradeRegistrarService(CoreConfiguration config, IRepository repository)
         {
@@ -144,7 +144,7 @@ namespace BinanceTrader.Core.Services
 
                 user.Wallets.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
-                RecognizedUserTraded?.Invoke(this, RecognizedUserTradesEventArgs.Create(user.Identifier, context.TradeId));
+                UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.TradeId));
             }
 
             return context;

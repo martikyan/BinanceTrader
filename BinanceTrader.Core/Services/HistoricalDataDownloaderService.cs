@@ -16,11 +16,11 @@ namespace BinanceTrader.Core.Services
     public class HistoricalDataDownloaderService
     {
         private readonly CoreConfiguration _config;
-        private readonly ITradeRegistrarService _tradeRegistrar;
+        private readonly TradeRegistrarService _tradeRegistrar;
         private List<BinanceRecentTrade> _tradesList;
         private const int _tradeRetrievalLimit = 1000; // Maximum allowed by Binance.
 
-        public HistoricalDataDownloaderService(CoreConfiguration config, ITradeRegistrarService tradeRegistrar)
+        public HistoricalDataDownloaderService(CoreConfiguration config, TradeRegistrarService tradeRegistrar)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _tradeRegistrar = tradeRegistrar ?? throw new ArgumentNullException(nameof(tradeRegistrar));

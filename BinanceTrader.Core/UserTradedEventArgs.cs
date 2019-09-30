@@ -1,15 +1,17 @@
 ﻿using System;
+using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core
 {
-    public class RecognizedUserTradesEventArgs : EventArgs
+    public class UserTradedEventArgs : EventArgs
     {
         public string UserId { get; set; }
+
         public long TradeId { get; set; }
 
-        public static RecognizedUserTradesEventArgs Create(string userId, long tradeId)
+        public static UserTradedEventArgs Create(string userId, long tradeId)
         {
-            return new RecognizedUserTradesEventArgs()
+            return new UserTradedEventArgs()
             {
                 UserId = userId,
                 TradeId = tradeId,

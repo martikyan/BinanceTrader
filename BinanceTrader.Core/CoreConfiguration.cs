@@ -15,5 +15,11 @@
         public double MaxTradeFeePercentage { get; set; }
 
         public int MemoryInSeconds { get; set; }
+
+        public int MinimalTraderActivityThresholdSeconds { get; set; }
+
+        public int MinimalTraderTrades { get; set; }
+
+        public double MinimalTraderProfitPercentage { get; set; }
     }
 }
