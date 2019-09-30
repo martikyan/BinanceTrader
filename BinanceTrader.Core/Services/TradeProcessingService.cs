@@ -13,6 +13,7 @@ namespace BinanceTrader.Core.Services
         private readonly BinanceSocketClient _client;
         private readonly TradeRegistrarService _tradeRegistrar;
         private readonly UserProcessingService _ups;
+        private bool _isStarted = false;
 
         public event EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTraded;
 
@@ -33,7 +34,14 @@ namespace BinanceTrader.Core.Services
 
         public void StartProcessingLiveTrades()
         {
+            if (_isStarted)
+            {
+                throw new InvalidOperationException($"{nameof(TradeProcessingService)} was already started processing live trades.");
+            }
+
             var symbolPair = new SymbolPair(_config.FirstSymbol, _config.SecondSymbol);
+
+            _isStarted = true;
             _tradeRegistrar.UserTraded += OnUserTraded;
 
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
