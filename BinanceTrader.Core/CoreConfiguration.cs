@@ -12,7 +12,9 @@
 
         public string TargetCurrencySymbol { get; set; }
 
-        public double MaxTradeFeePercentage { get; set; }
+        public double MaximumAllowedTradeSyncSeconds { get; set; }
+
+        public double MaximumTradeFeePercentage { get; set; }
 
         public int MemoryInSeconds { get; set; }
 

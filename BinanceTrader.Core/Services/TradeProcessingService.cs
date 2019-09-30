@@ -49,6 +49,13 @@ namespace BinanceTrader.Core.Services
 
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
             {
+                var ping = (DateTime.UtcNow - trade.TradeTime).TotalSeconds;
+                if (ping > _config.MaximumAllowedTradeSyncSeconds || ping < 0)
+                {
+                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try syncronizing machine time or checking the config value with name: {nameof(_config.MaximumAllowedTradeSyncSeconds)}");
+                    Environment.Exit(1);
+                }
+
                 _logger.Verbose($"Detected trade with Id {trade.TradeId}");
                 _tradeRegistrar.RegisterTrade(trade.ToTradeModel(symbolPair));
             });

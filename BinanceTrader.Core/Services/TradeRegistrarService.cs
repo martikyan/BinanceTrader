@@ -49,8 +49,8 @@ namespace BinanceTrader.Core.Services
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
 
-            var buyerMin = SubstractPercentage(context.BuyingPair.Amount, _config.MaxTradeFeePercentage);
-            var sellerMin = SubstractPercentage(context.SellingPair.Amount, _config.MaxTradeFeePercentage);
+            var buyerMin = SubstractPercentage(context.BuyingPair.Amount, _config.MaximumTradeFeePercentage);
+            var sellerMin = SubstractPercentage(context.SellingPair.Amount, _config.MaximumTradeFeePercentage);
 
             var buyerAssociates = _repository.GetUsersWithBalanceInRange(buyerMin, context.BuyingPair.Amount, context.BuyingPair.Symbol);
             var sellerAssociates = _repository.GetUsersWithBalanceInRange(sellerMin, context.SellingPair.Amount, context.SellingPair.Symbol);
