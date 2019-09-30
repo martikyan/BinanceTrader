@@ -13,6 +13,7 @@ namespace BinanceTrader.Core.Services
     /// <summary>
     /// TODO delete the downloader service. It contains bugs and it's hard to syncronize with realtime listener.
     /// </summary>
+    [Obsolete]
     public class HistoricalDataDownloaderService
     {
         private readonly CoreConfiguration _config;
