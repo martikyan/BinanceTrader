@@ -12,6 +12,8 @@
 
         public string TargetCurrencySymbol { get; set; }
 
+        public bool EnableAutoTrade { get; set; }
+
         public double MaximumAllowedTradeSyncSeconds { get; set; }
 
         public double MaximumTradeFeePercentage { get; set; }

@@ -29,9 +29,10 @@ namespace BinanceTrader.Core
             {
                 container.Install(new TraderInstaller(config, logger));
                 var tps = container.Resolve<TradeProcessingService>();
-                tps.StartProcessingLiveTrades();
+                var autoTrader = container.Resolve<IAutoTrader>();
 
-                tps.ProfitableUserTraded += Tps_ProfitableUserTraded;
+                tps.ProfitableUserTraded += autoTrader.ProfitableUserTradedHandler;
+                tps.StartProcessingLiveTrades();
 
                 _resetEvent.WaitOne();
             }

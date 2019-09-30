@@ -23,11 +23,19 @@ namespace BinanceTrader.Core
         {
             container.Register(Component.For<ILogger>().Instance(_logger));
             container.Register(Component.For<CoreConfiguration>().Instance(_config));
-            container.Register(Component.For<HistoricalDataDownloaderService>());
             container.Register(Component.For<UserProcessingService>());
             container.Register(Component.For<TradeRegistrarService>());
             container.Register(Component.For<TradeProcessingService>());
             container.Register(Component.For<IRepository>().ImplementedBy<Repository>());
+
+            if (_config.EnableAutoTrade)
+            {
+                container.Register(Component.For<IAutoTrader>().ImplementedBy<AutoTrader>());
+            }
+            else
+            {
+                container.Register(Component.For<IAutoTrader>().ImplementedBy<FakeAutoTrader>());
+            }
         }
     }
 }
