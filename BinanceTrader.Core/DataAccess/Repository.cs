@@ -70,7 +70,7 @@ namespace BinanceTrader.Core.DataAccess
             unionList.AddRange(a1);
             unionList.AddRange(a2);
 
-            if (unionList.Count < 50)
+            if (unionList.Count < 25)
             {
                 return 0;
             }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using BinanceTrader.Core.Utils;
+using Serilog;
 
 namespace BinanceTrader.Core.Services
 {
@@ -11,17 +12,20 @@ namespace BinanceTrader.Core.Services
     {
         private readonly CoreConfiguration _config;
         private readonly IRepository _repository;
+        private readonly ILogger _logger;
 
         public event EventHandler<UserTradedEventArgs> UserTraded;
 
-        public TradeRegistrarService(CoreConfiguration config, IRepository repository)
+        public TradeRegistrarService(CoreConfiguration config, IRepository repository, ILogger logger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public TradeRegistrationContext RegisterTrade(Trade trade)
         {
+            _logger.Verbose($"Registering trade with Id {trade.TradeId}");
             var context = new TradeRegistrationContext()
             {
                 TradeId = trade.TradeId,
@@ -37,9 +41,11 @@ namespace BinanceTrader.Core.Services
 
             if (!context.IsComplexTrade)
             {
+                _logger.Verbose($"Trade with Id {trade.TradeId} was not complex. q = {trade.Quantity} p = {trade.Price} sp = {trade.SymbolPair}");
                 return context;
             }
 
+            _logger.Verbose($"Trade with Id {trade.TradeId} was a complex trade. Registering.");
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
 

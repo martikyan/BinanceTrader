@@ -1,36 +1,39 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Services;
 using Castle.Windsor;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace BinanceTrader.Core
 {
     public class Program
     {
+        private static ManualResetEvent _resetEvent = new ManualResetEvent(false);
+
         public static void Main(string[] args)
         {
-            var manualResetEvent = new ManualResetEvent(false);
-            var builder = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .Build()
+                .Get<CoreConfiguration>();
 
-            var configRoot = builder.Build();
-            var config = configRoot.Get<CoreConfiguration>();
+            var logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.Console()
+                .CreateLogger();
 
             using (var container = new WindsorContainer())
             {
-                container.Install(new TraderInstaller(config));
-                var dataFiller = container.Resolve<HistoricalDataDownloaderService>();
+                container.Install(new TraderInstaller(config, logger));
                 var tps = container.Resolve<TradeProcessingService>();
                 tps.StartProcessingLiveTrades();
 
                 tps.ProfitableUserTraded += Tps_ProfitableUserTraded;
 
-                manualResetEvent.WaitOne();
+                _resetEvent.WaitOne();
             }
         }
 

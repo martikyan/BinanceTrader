@@ -1,5 +1,4 @@
 ﻿using System;
-using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core
 {

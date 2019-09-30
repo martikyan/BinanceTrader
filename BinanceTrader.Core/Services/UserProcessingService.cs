@@ -3,26 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
+using Serilog;
 
 namespace BinanceTrader.Core.Services
 {
     public class UserProcessingService
     {
         private readonly IRepository _repository;
+        private readonly ILogger _logger;
 
-        public UserProcessingService(IRepository repo)
+        public UserProcessingService(IRepository repo, ILogger logger)
         {
             _repository = repo ?? throw new ArgumentNullException(nameof(repo));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public UserProfitReport GetUserProfit(string userId)
         {
+            _logger.Debug($"Getting user {userId} from repo with for profit calculation Id.");
             var user = _repository.GetUserById(userId);
+
             return GetUserProfit(user);
         }
 
         public UserProfitReport GetUserProfit(BinanceUser user)
         {
+            _logger.Verbose($"Starting profit calculation for user with Id: {user.Identifier}");
             var profit = new UserProfitReport()
             {
                 WalletsCount = user.Wallets.Count,
@@ -38,14 +44,9 @@ namespace BinanceTrader.Core.Services
 
             var wallets = new List<Wallet>(user.Wallets);
 
-            if (wallets.Count < 2)
+            if (wallets.Count < 2 || wallets.First().Symbol != wallets.Last().Symbol)
             {
-                profit.IsFullReport = false;
-                return profit;
-            }
-
-            if (wallets.First().Symbol != wallets.Last().Symbol)
-            {
+                _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
                 profit.IsFullReport = false;
                 return profit;
             }
