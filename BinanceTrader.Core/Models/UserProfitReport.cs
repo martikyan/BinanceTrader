@@ -8,7 +8,7 @@ namespace BinanceTrader.Core.Models
 
         public double ProfitPercentage { get; set; }
 
-        public int TradesCount { get; set; }
+        public int WalletsCount { get; set; }
 
         public int SucceededTradesCount { get; set; }
 

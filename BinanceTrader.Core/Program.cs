@@ -13,14 +13,13 @@ namespace BinanceTrader.Core
     {
         private static IRepository repo;
         private static UserProcessingService ups;
-        private static double MaximalProfitYet = -1.0;
 
         public static void Main(string[] args)
         {
             var manualResetEvent = new ManualResetEvent(false);
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
 
             var configRoot = builder.Build();
             var config = configRoot.Get<CoreConfiguration>();
@@ -43,30 +42,22 @@ namespace BinanceTrader.Core
         private static void Registrar_RecognizedUserTraded(object sender, RecognizedUserTradesEventArgs e)
         {
             var user = repo.GetUserById(e.UserId);
-            if (user.TradeIds.Count < 3)
+            if (user.Wallets.Count < 3)
             {
                 return;
             }
 
             var userProfit = ups.GetUserProfit(user);
-            if (userProfit.ProfitPercentage < MaximalProfitYet)
+
+            if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(10) || userProfit.ProfitPercentage < 1 || userProfit.IsFullReport == false)
             {
                 return;
             }
 
-            if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(10) || userProfit.IsFullReport == false)
-            {
-                return;
-            }
-
-            MaximalProfitYet = userProfit.ProfitPercentage;
-
-            user.WalletsHistory.Add(user.CurrentWallet);
-            user.WalletsHistory = user.WalletsHistory.OrderBy(w => w.WalletCreatedFromTradeId).ToList();
             Console.WriteLine($"==============User detected with positive profit==============");
             Console.WriteLine($"User ID : {user.Identifier}");
             Console.WriteLine($"User profit: {userProfit.ProfitPercentage}%");
-            Console.WriteLine($"User trades count: {userProfit.TradesCount} | {string.Join("->", user.WalletsHistory.Select(w => $"{w.Balance} {w.Symbol}"))}");
+            Console.WriteLine($"User wallets {string.Join("->", user.Wallets.Select(w => $"{w.Balance} {w.Symbol}"))}");
             Console.WriteLine($"Average trade threshold seconds: {userProfit.AverageTradeThreshold.TotalSeconds}");
             Console.WriteLine($"Minimal trade threshold seconds: {userProfit.MinimalTradeThreshold.TotalSeconds}");
             Console.WriteLine($"Success count: {userProfit.SucceededTradesCount}");

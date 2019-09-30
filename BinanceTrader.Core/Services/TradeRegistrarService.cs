@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using BinanceTrader.Core.Utils;
@@ -55,7 +54,7 @@ namespace BinanceTrader.Core.Services
 
             context = RegisterBuyerFromContext(context);
             context = RegisterSellerFromContext(context);
-            
+
             return context;
         }
 
@@ -110,19 +109,17 @@ namespace BinanceTrader.Core.Services
         {
             var user = new BinanceUser()
             {
+                Wallets = new List<Wallet>(),
                 Identifier = IdentificationUtilities.GetRandomIdentifier(),
-                TradeIds = new List<long>(capacity: 1),
-                WalletsHistory = new List<Wallet>(),
             };
 
-            user.TradeIds.Add(context.TradeId);
-            user.CurrentWallet = new Wallet()
+            user.Wallets.Add(new Wallet()
             {
                 Symbol = symbol,
                 OwnerId = user.Identifier,
                 Balance = balance,
                 WalletCreatedFromTradeId = context.TradeId,
-            };
+            });
 
             _repository.AddOrUpdateUser(user);
             return context;
@@ -132,11 +129,12 @@ namespace BinanceTrader.Core.Services
         {
             foreach (var user in users)
             {
-                bool isOldBuyerSelling = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol);
-                var pair = isOldBuyerSelling ? context.SellingPair : context.BuyingPair;
+                bool isOldBuyer = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol);
+                var pair = isOldBuyer ? context.SellingPair : context.BuyingPair;
 
-                user.WalletsHistory.Add(user.CurrentWallet);
-                user.CurrentWallet = new Wallet()
+                Debug.Assert(!isOldBuyer ? string.Equals(context.SellingPair.Symbol, user.CurrentWallet.Symbol) : true);
+
+                var newWallet = new Wallet()
                 {
                     OwnerId = user.Identifier,
                     Symbol = pair.Symbol,
@@ -144,7 +142,7 @@ namespace BinanceTrader.Core.Services
                     WalletCreatedFromTradeId = context.TradeId,
                 };
 
-                user.TradeIds.Add(context.TradeId);
+                user.Wallets.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
                 RecognizedUserTraded?.Invoke(this, RecognizedUserTradesEventArgs.Create(user.Identifier, context.TradeId));
             }

@@ -17,22 +17,6 @@ namespace BinanceTrader.Core.Services
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public void UpdateUserTradeFee(string userId)
-        {
-            var user = _repository.GetUserById(userId);
-            UpdateUserTradeFee(user);
-        }
-
-        public void UpdateUserTradeFee(BinanceUser user)
-        {
-            var trades = new List<Trade>(capacity: user.TradeIds.Count);
-            foreach (var tradeId in user.TradeIds.OrderBy(tId => tId))
-            {
-                var trade = _repository.GetTradeById(tradeId);
-                trades.Add(trade);
-            }
-        }
-
         public UserProfitReport GetUserProfit(string userId)
         {
             var user = _repository.GetUserById(userId);
@@ -43,27 +27,25 @@ namespace BinanceTrader.Core.Services
         {
             var profit = new UserProfitReport()
             {
-                TradesCount = user.TradeIds.Count,
-                CurrencySymbol = user.WalletsHistory.First().Symbol,
+                WalletsCount = user.Wallets.Count,
+                CurrencySymbol = user.Wallets.First().Symbol,
             };
 
-            var trades = new List<Trade>(capacity: user.TradeIds.Count);
-            foreach (var tradeId in user.TradeIds.OrderBy(tId => tId))
+            var trades = new List<Trade>();
+            foreach (var tradeId in user.Wallets.Select(w => w.WalletCreatedFromTradeId))
             {
                 var trade = _repository.GetTradeById(tradeId);
                 trades.Add(trade);
             }
 
-            var wallets = new List<Wallet>(user.WalletsHistory);
-            wallets.Add(user.CurrentWallet);
+            var wallets = new List<Wallet>(user.Wallets);
 
-            if (wallets.Count == 1)
+            if (wallets.Count < 2)
             {
                 profit.IsFullReport = false;
                 return profit;
             }
 
-            wallets = wallets.OrderBy(w => w.WalletCreatedFromTradeId).ToList();
             if (wallets.First().Symbol != wallets.Last().Symbol)
             {
                 profit.IsFullReport = false;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Binance.Net;
@@ -16,12 +17,15 @@ namespace BinanceTrader.Core.Services
     {
         private readonly CoreConfiguration _config;
         private readonly ITradeRegistrarService _tradeRegistrar;
+        private List<BinanceRecentTrade> _tradesList;
         private const int _tradeRetrievalLimit = 1000; // Maximum allowed by Binance.
 
         public HistoricalDataDownloaderService(CoreConfiguration config, ITradeRegistrarService tradeRegistrar)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _tradeRegistrar = tradeRegistrar ?? throw new ArgumentNullException(nameof(tradeRegistrar));
+
+            _tradesList = new List<BinanceRecentTrade>();
         }
 
         public async Task DownloadToRepositoryAsync()
@@ -41,22 +45,22 @@ namespace BinanceTrader.Core.Services
                 while (true)
                 {
                     var data = await client.GetHistoricalTradesAsync(symbolPair.ToString(), _tradeRetrievalLimit, tradeIdContinuation);
-                    var trades = data.Data
-                        .Select(recentTrade => BinanceModelExtensions.ToTradeModel(recentTrade, symbolPair))
-                        .ToList();
+                    var trades = data.Data;
+                    _tradesList.AddRange(trades);
 
-                    foreach (var trade in trades)
-                    {
-                        _tradeRegistrar.RegisterTrade(trade);
-                    }
-
-                    if (trades.Min(t => t.TradeTime) < firstTradeDate)
+                    if (trades.Min(t => t.Time) < firstTradeDate)
                     {
                         break;
                     }
 
-                    tradeIdContinuation = trades.Min(t => t.TradeId) - _tradeRetrievalLimit;
+                    tradeIdContinuation = trades.Min(t => t.Id) - _tradeRetrievalLimit - 1;
                 }
+                _tradesList = _tradesList.OrderBy(t => t.Id).ToList();
+                foreach (var trade in _tradesList)
+                {
+                    _tradeRegistrar.RegisterTrade(trade.ToTradeModel(new SymbolPair(_config.FirstSymbol, _config.SecondSymbol)));
+                }
+
                 Console.WriteLine("Done downloading historical data.");
             }
         }
