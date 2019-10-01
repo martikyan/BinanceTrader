@@ -44,7 +44,7 @@ namespace BinanceTrader.Core.AutoTrader
                 var user = _repo.GetUserById(e.UserId);
                 if (user.CurrentWallet.Symbol == _walletBalance.Symbol)
                 {
-                    _logger.Warning($"Now trader hold the currency that we already have.");
+                    _logger.Warning($"Now trader holds the currency that we already have.");
                     return;
                 }
 
