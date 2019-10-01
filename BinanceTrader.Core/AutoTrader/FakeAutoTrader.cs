@@ -23,6 +23,12 @@ namespace BinanceTrader.Core.AutoTrader
 
         protected override void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
+            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
+            {
+                _logger.Warning("Report was not targeting our currency symbol.");
+                return;
+            }
+
             if (_attachedUserIds.Count == 0 || _attachedUserIds.Contains(e.UserId))
             {
                 if (_attachedUserIds.Count == 0)

@@ -5,6 +5,7 @@ using BinanceTrader.Core.Services;
 using Castle.Windsor;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using Serilog.Events;
 
 namespace BinanceTrader.Core
 {
@@ -22,6 +23,7 @@ namespace BinanceTrader.Core
 
             var logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
+                .WriteTo.File("log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
                 .WriteTo.Console()
                 .CreateLogger();
 
