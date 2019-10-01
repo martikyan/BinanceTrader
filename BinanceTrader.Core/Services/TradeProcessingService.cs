@@ -15,7 +15,7 @@ namespace BinanceTrader.Core.Services
         private readonly TradeRegistrarService _tradeRegistrar;
         private readonly UserProcessingService _ups;
         private readonly ILogger _logger;
-        private bool _isStarted = false;
+        private bool _isStarted;
 
         public event EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTraded;
 
@@ -52,7 +52,7 @@ namespace BinanceTrader.Core.Services
                 var ping = (DateTime.UtcNow - trade.TradeTime).TotalSeconds;
                 if (ping > _config.MaximumAllowedTradeSyncSeconds || ping < 0)
                 {
-                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try syncronizing machine time or checking the config value with name: {nameof(_config.MaximumAllowedTradeSyncSeconds)}");
+                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.MaximumAllowedTradeSyncSeconds)}");
                     Environment.Exit(1);
                 }
 
@@ -68,7 +68,7 @@ namespace BinanceTrader.Core.Services
 
             if (IsProfitableUser(userProfit))
             {
-                _logger.Information($"The user with Id {e.UserId} seemds to be profitable.");
+                _logger.Information($"The user with Id {e.UserId} seems to be profitable.");
                 var eventArgs = new ProfitableUserTradedEventArgs()
                 {
                     UserId = e.UserId,

@@ -107,7 +107,7 @@ namespace BinanceTrader.Core.DataAccess
             var allUsers = _usersCache.Select(u => u.Value).Cast<BinanceUser>();
 
             return allUsers.Where(u => string.Equals(u.CurrentWallet.Symbol, symbol) &&
-                IsInRange(balance, SubstractPercentage(u.CurrentWallet.Balance, maxGivenFee), u.CurrentWallet.Balance))
+                IsInRange(balance, SubtractPercentage(u.CurrentWallet.Balance, maxGivenFee), u.CurrentWallet.Balance))
                 .ToList();
         }
 
@@ -121,7 +121,7 @@ namespace BinanceTrader.Core.DataAccess
             return policy;
         }
 
-        private decimal SubstractPercentage(decimal fromValue, double percentage)
+        private static decimal SubtractPercentage(decimal fromValue, double percentage)
         {
             var p = fromValue * (100m - (decimal)percentage) / 100m;
             return p;

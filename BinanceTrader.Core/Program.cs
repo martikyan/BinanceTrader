@@ -11,7 +11,7 @@ namespace BinanceTrader.Core
 {
     public class Program
     {
-        private static ManualResetEvent _resetEvent = new ManualResetEvent(false);
+        private static readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
         public static void Main(string[] args)
         {
