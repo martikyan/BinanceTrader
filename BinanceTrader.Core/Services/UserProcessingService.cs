@@ -20,7 +20,7 @@ namespace BinanceTrader.Core.Services
 
         public UserProfitReport GetUserProfit(string userId)
         {
-            _logger.Debug($"Getting user {userId} from repo with for profit calculation Id.");
+            _logger.Debug($"Getting user {userId} from repo with for profit calculation.");
             var user = _repository.GetUserById(userId);
 
             return GetUserProfit(user);
