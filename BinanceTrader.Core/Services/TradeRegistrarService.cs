@@ -147,10 +147,8 @@ namespace BinanceTrader.Core.Services
         {
             foreach (var user in users)
             {
-                bool isOldBuyer = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol);
+                var isOldBuyer = string.Equals(context.BuyingPair.Symbol, user.CurrentWallet.Symbol);
                 var pair = isOldBuyer ? context.SellingPair : context.BuyingPair;
-
-                Debug.Assert(!isOldBuyer ? string.Equals(context.SellingPair.Symbol, user.CurrentWallet.Symbol) : true);
 
                 var newWallet = new Wallet()
                 {

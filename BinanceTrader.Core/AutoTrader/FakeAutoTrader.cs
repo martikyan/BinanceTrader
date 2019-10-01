@@ -38,13 +38,13 @@ namespace BinanceTrader.Core.AutoTrader
                     _attachedUserIds.Add(e.UserId);
                 }
 
-                _logger.Warning($"Attached user traded. Repeating actions.");
+                _logger.Warning("Attached user traded. Repeating actions.");
                 _lastTradeDate = DateTime.UtcNow;
                 var trade = _repo.GetTradeById(e.TradeId);
                 var user = _repo.GetUserById(e.UserId);
                 if (user.CurrentWallet.Symbol == _walletBalance.Symbol)
                 {
-                    _logger.Warning($"Now trader holds the currency that we already have.");
+                    _logger.Warning("Now trader holds the currency that we already have.");
                     return;
                 }
 
@@ -59,14 +59,14 @@ namespace BinanceTrader.Core.AutoTrader
                 if (DateTime.UtcNow - _lastTradeDate > _attachedUserProfit.AverageTradeThreshold * 5)
                 {
                     _logger.Warning($"Last trade was in {_lastTradeDate}. Too long before.");
-                    // Reseting
+                    // Resetting
                     _logger.Warning("Clearing attached user list.");
                     _attachedUserIds.Clear();
                     HandleEvent(this, e);
                 }
                 else
                 {
-                    _logger.Warning($"No, still waiting for the attached user.");
+                    _logger.Warning("No, still waiting for the attached user.");
                 }
             }
         }

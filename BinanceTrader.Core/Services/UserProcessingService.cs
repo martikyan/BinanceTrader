@@ -46,8 +46,8 @@ namespace BinanceTrader.Core.Services
 
             var walletsForCurrency1 = user.Wallets.Where(w => w.Symbol == _config.FirstSymbol);
             var walletsForCurrency2 = user.Wallets.Where(w => w.Symbol == _config.SecondSymbol);
-            var profit1 = CaclulateProfitForWallets(walletsForCurrency1);
-            var profit2 = CaclulateProfitForWallets(walletsForCurrency2);
+            var profit1 = CalculateProfitForWallets(walletsForCurrency1);
+            var profit2 = CalculateProfitForWallets(walletsForCurrency2);
 
             var selectedWallets = profit1 > profit2 ? walletsForCurrency1.ToList() : walletsForCurrency2.ToList();
             profit.ProfitPercentage = profit1 > profit2 ? profit1 : profit2;
@@ -87,7 +87,7 @@ namespace BinanceTrader.Core.Services
             return profit;
         }
 
-        private static double CaclulateProfitForWallets(IEnumerable<Wallet> wallets)
+        private static double CalculateProfitForWallets(IEnumerable<Wallet> wallets)
         {
             var startingBalance = wallets.FirstOrDefault().Balance;
             var endingBalance = wallets.LastOrDefault().Balance;
