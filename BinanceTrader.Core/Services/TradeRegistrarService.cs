@@ -55,8 +55,19 @@ namespace BinanceTrader.Core.Services
             context.BuyerAssociatedUsers = buyerAssociates;
             context.SellerAssociatedUsers = sellerAssociates;
 
-            context = RegisterBuyerFromContext(context);
-            context = RegisterSellerFromContext(context);
+            if (buyerAssociates.Count > sellerAssociates.Count)
+            {
+                context = RegisterBuyerFromContext(context);
+            }
+            else if (sellerAssociates.Count > buyerAssociates.Count)
+            {
+                context = RegisterSellerFromContext(context);
+            }
+            else
+            {
+                context = RegisterBuyerFromContext(context);
+                context = RegisterSellerFromContext(context);
+            }
 
             return context;
         }
