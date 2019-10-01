@@ -34,7 +34,6 @@ namespace BinanceTrader.Core.Services
             var profit = new UserProfitReport()
             {
                 WalletsCount = user.Wallets.Count,
-                CurrencySymbol = user.Wallets.First().Symbol,
             };
 
             var trades = new List<Trade>();
