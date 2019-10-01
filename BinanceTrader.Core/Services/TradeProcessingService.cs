@@ -68,7 +68,7 @@ namespace BinanceTrader.Core.Services
 
             if (IsProfitableUser(userProfit))
             {
-                _logger.Information($"The user with Id {e.UserId} seemds to be profitable.");
+                _logger.Information($"The user with Id {e.UserId} seems to be profitable.");
                 var eventArgs = new ProfitableUserTradedEventArgs()
                 {
                     UserId = e.UserId,
