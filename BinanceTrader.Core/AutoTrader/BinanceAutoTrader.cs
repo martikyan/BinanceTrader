@@ -1,11 +1,12 @@
 ﻿using System;
+using BinanceTrader.Core.Models;
 using Serilog;
 
-namespace BinanceTrader.Core
+namespace BinanceTrader.Core.AutoTrader
 {
-    public class AutoTrader : AutoTraderBase
+    public class BinanceAutoTrader : AutoTraderBase
     {
-        public AutoTrader(CoreConfiguration config, ILogger logger)
+        public BinanceAutoTrader(CoreConfiguration config, ILogger logger)
             : base(config, logger)
         {
         }

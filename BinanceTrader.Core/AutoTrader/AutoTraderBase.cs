@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using BinanceTrader.Core.Models;
 using Serilog;
 
-namespace BinanceTrader.Core
+namespace BinanceTrader.Core.AutoTrader
 {
     public abstract class AutoTraderBase : IAutoTrader
     {

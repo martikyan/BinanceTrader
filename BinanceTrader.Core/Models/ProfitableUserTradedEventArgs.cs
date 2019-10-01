@@ -1,6 +1,4 @@
-﻿using BinanceTrader.Core.Models;
-
-namespace BinanceTrader.Core
+﻿namespace BinanceTrader.Core.Models
 {
     public class ProfitableUserTradedEventArgs : UserTradedEventArgs
     {

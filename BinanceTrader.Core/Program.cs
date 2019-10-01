@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading;
+using BinanceTrader.Core.AutoTrader;
 using BinanceTrader.Core.Services;
 using Castle.Windsor;
 using Microsoft.Extensions.Configuration;

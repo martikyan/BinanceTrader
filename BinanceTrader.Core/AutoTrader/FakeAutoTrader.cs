@@ -4,7 +4,7 @@ using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using Serilog;
 
-namespace BinanceTrader.Core
+namespace BinanceTrader.Core.AutoTrader
 {
     public class FakeAutoTrader : AutoTraderBase
     {

@@ -1,6 +1,7 @@
 ﻿using System;
+using BinanceTrader.Core.Models;
 
-namespace BinanceTrader.Core
+namespace BinanceTrader.Core.AutoTrader
 {
     public interface IAutoTrader
     {

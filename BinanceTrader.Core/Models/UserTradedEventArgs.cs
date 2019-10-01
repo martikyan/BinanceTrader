@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BinanceTrader.Core
+namespace BinanceTrader.Core.Models
 {
     public class UserTradedEventArgs : EventArgs
     {

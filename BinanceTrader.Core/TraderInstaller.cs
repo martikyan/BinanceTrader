@@ -1,4 +1,5 @@
 ﻿using System;
+using BinanceTrader.Core.AutoTrader;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Services;
 using Castle.MicroKernel.Registration;
@@ -30,7 +31,7 @@ namespace BinanceTrader.Core
 
             if (_config.EnableAutoTrade)
             {
-                container.Register(Component.For<IAutoTrader>().ImplementedBy<AutoTrader>());
+                container.Register(Component.For<IAutoTrader>().ImplementedBy<BinanceAutoTrader>());
             }
             else
             {
