@@ -53,7 +53,7 @@ namespace BinanceTrader.Core.Services
             profit.ProfitPercentage = profit1 > profit2 ? profit1 : profit2;
             profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
 
-            if (selectedWallets.Count < 2 || profit.ProfitPercentage <= 0.0)
+            if (selectedWallets.Count < 2 || profit.ProfitPercentage == default)
             {
                 _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
                 profit.IsFullReport = false;
