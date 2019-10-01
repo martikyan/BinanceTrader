@@ -49,11 +49,8 @@ namespace BinanceTrader.Core.Services
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
 
-            var buyerMin = SubstractPercentage(context.BuyingPair.Amount, _config.MaximumTradeFeePercentage);
-            var sellerMin = SubstractPercentage(context.SellingPair.Amount, _config.MaximumTradeFeePercentage);
-
-            var buyerAssociates = _repository.GetUsersWithBalanceInRange(buyerMin, context.BuyingPair.Amount, context.BuyingPair.Symbol);
-            var sellerAssociates = _repository.GetUsersWithBalanceInRange(sellerMin, context.SellingPair.Amount, context.SellingPair.Symbol);
+            var buyerAssociates = _repository.GetUsersWithBalance(context.BuyingPair.Amount, context.BuyingPair.Symbol, _config.MaximumTradeFeePercentage);
+            var sellerAssociates = _repository.GetUsersWithBalance(context.SellingPair.Amount, context.SellingPair.Symbol, _config.MaximumTradeFeePercentage);
 
             context.BuyerAssociatedUsers = buyerAssociates;
             context.SellerAssociatedUsers = sellerAssociates;
@@ -128,6 +125,7 @@ namespace BinanceTrader.Core.Services
             });
 
             _repository.AddOrUpdateUser(user);
+            _logger.Debug($"Registered a new user with Id: {user.Identifier}");
             return context;
         }
 
@@ -150,15 +148,11 @@ namespace BinanceTrader.Core.Services
 
                 user.Wallets.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
+                _logger.Debug($"User with Id {user.Identifier} got updated.");
                 UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.TradeId));
             }
 
             return context;
-        }
-
-        private decimal SubstractPercentage(decimal fromValue, double percentage)
-        {
-            return fromValue * (100m - (decimal)percentage) / 100m;
         }
     }
 }

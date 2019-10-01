@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using BinanceTrader.Core.Services;
 using Castle.Windsor;
@@ -36,23 +35,6 @@ namespace BinanceTrader.Core
 
                 _resetEvent.WaitOne();
             }
-        }
-
-        private static void Tps_ProfitableUserTraded(object sender, ProfitableUserTradedEventArgs e)
-        {
-            var userProfit = e.Report;
-
-            Console.WriteLine($"==============User detected with positive profit==============");
-            Console.WriteLine($"User ID : {e.UserId}");
-            Console.WriteLine($"Detected on TradeID : {e.TradeId}");
-            Console.WriteLine($"User profit: {userProfit.ProfitPercentage}%");
-            Console.WriteLine($"Average trade threshold seconds: {userProfit.AverageTradeThreshold.TotalSeconds}");
-            Console.WriteLine($"Minimal trade threshold seconds: {userProfit.MinimalTradeThreshold.TotalSeconds}");
-            Console.WriteLine($"Success count: {userProfit.SucceededTradesCount}");
-            Console.WriteLine($"Failed count: {userProfit.FailedTradesCount}");
-            Console.WriteLine($"Start balance: {userProfit.StartBalance}{userProfit.CurrencySymbol}");
-            Console.WriteLine($"Ending balance: {userProfit.EndBalance}{userProfit.CurrencySymbol}");
-            Console.WriteLine($"==============================================================");
         }
     }
 }

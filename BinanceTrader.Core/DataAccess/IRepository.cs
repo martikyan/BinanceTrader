@@ -19,6 +19,6 @@ namespace BinanceTrader.Core.DataAccess
 
         BinanceUser GetUserById(string userId);
 
-        List<BinanceUser> GetUsersWithBalanceInRange(decimal lBalance, decimal hBalance, string symbol);
+        List<BinanceUser> GetUsersWithBalance(decimal balance, string symbol, double maxGivenFee);
     }
 }
