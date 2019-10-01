@@ -86,7 +86,8 @@ namespace BinanceTrader.Core.Services
                 userProfit.IsFullReport &&
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.MinimalTraderActivityThresholdSeconds) &&
                 userProfit.WalletsCount >= _config.MinimalTraderTradesCount &&
-                userProfit.ProfitPercentage >= _config.MinimalTraderProfitPercentage;
+                userProfit.ProfitPercentage >= _config.MinimalTraderProfitPercentage &&
+                userProfit.CurrencySymbol == _config.TargetCurrencySymbol;
         }
     }
 }

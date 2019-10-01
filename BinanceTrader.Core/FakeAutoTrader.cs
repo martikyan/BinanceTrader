@@ -23,14 +23,22 @@ namespace BinanceTrader.Core
 
         protected override void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
-            if (_attachedUserIds.Contains(e.UserId))
+            if (_attachedUserIds.Count == 0 || _attachedUserIds.Contains(e.UserId))
             {
+                if (_attachedUserIds.Count == 0)
+                {
+                    _logger.Warning($"Attaching to user with Id: {e.UserId}");
+                    _attachedUserProfit = e.Report;
+                    _attachedUserIds.Add(e.UserId);
+                }
+
                 _logger.Warning($"Attached user traded. Repeating actions.");
                 _lastTradeDate = DateTime.UtcNow;
                 var trade = _repo.GetTradeById(e.TradeId);
                 var user = _repo.GetUserById(e.UserId);
                 if (user.CurrentWallet.Symbol != _walletBalance.Symbol)
                 {
+                    _logger.Warning($"Now trader hold the currency that we already have.");
                     return;
                 }
 
@@ -39,16 +47,9 @@ namespace BinanceTrader.Core
                 _walletBalance = CalculateWalletBalanceAfterTrade(_walletBalance, trade.Price);
                 _logger.Warning($"After selling balance is {_walletBalance.Amount}{_walletBalance.Symbol}");
             }
-            else if (_attachedUserIds.Count == 0)
-            {
-                _logger.Warning($"Attaching to user with Id: {e.UserId}");
-
-                _attachedUserProfit = e.Report;
-                _attachedUserIds.Add(e.UserId);
-            }
             else
             {
-                _logger.Warning($"Checking if last trade was ${_attachedUserProfit.AverageTradeThreshold * 5} seconds before.");
+                _logger.Warning($"Checking if last trade was {_attachedUserProfit.AverageTradeThreshold * 5}  before.");
                 if (DateTime.UtcNow - _lastTradeDate > _attachedUserProfit.AverageTradeThreshold * 5)
                 {
                     _logger.Warning($"Last trade was in {_lastTradeDate}. Too long before.");
@@ -56,6 +57,10 @@ namespace BinanceTrader.Core
                     _logger.Warning("Clearing attached user list.");
                     _attachedUserIds.Clear();
                     HandleEvent(this, e);
+                }
+                else
+                {
+                    _logger.Warning($"No, still waiting for the attached user.");
                 }
             }
         }
