@@ -25,7 +25,7 @@ namespace BinanceTrader.Core.AutoTrader
         {
             if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
             {
-                _logger.Warning("Report was not targeting our currency symbol.");
+                _logger.Information("Report was not targeting our currency symbol.");
                 return;
             }
 
@@ -33,18 +33,18 @@ namespace BinanceTrader.Core.AutoTrader
             {
                 if (_attachedUserIds.Count == 0)
                 {
-                    _logger.Warning($"Attaching to user with Id: {e.UserId}");
+                    _logger.Information($"Attaching to user with Id: {e.UserId}");
                     _attachedUserProfit = e.Report;
                     _attachedUserIds.Add(e.UserId);
                 }
 
-                _logger.Warning("Attached user traded. Repeating actions.");
+                _logger.Information("Attached user traded. Repeating actions.");
                 _lastTradeDate = DateTime.UtcNow;
                 var trade = _repo.GetTradeById(e.TradeId);
                 var user = _repo.GetUserById(e.UserId);
                 if (user.CurrentWallet.Symbol == _walletBalance.Symbol)
                 {
-                    _logger.Warning("Now trader holds the currency that we already have.");
+                    _logger.Information("Currently the trader holds the currency that we already have.");
                     return;
                 }
 
@@ -55,18 +55,19 @@ namespace BinanceTrader.Core.AutoTrader
             }
             else
             {
-                _logger.Warning($"Checking if last trade was {_attachedUserProfit.AverageTradeThreshold * 5}  before.");
-                if (DateTime.UtcNow - _lastTradeDate > _attachedUserProfit.AverageTradeThreshold * 5)
+                var maxTimeToWaitForAttachedUser = _attachedUserProfit.AverageTradeThreshold * 3;
+                _logger.Information($"Checking if last trade was more than {maxTimeToWaitForAttachedUser} before.");
+                if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser)
                 {
-                    _logger.Warning($"Last trade was in {_lastTradeDate}. Too long before.");
+                    _logger.Information($"Last trade was in {_lastTradeDate}. Too long before.");
                     // Resetting
-                    _logger.Warning("Clearing attached user list.");
+                    _logger.Information("Clearing attached user list.");
                     _attachedUserIds.Clear();
                     HandleEvent(this, e);
                 }
                 else
                 {
-                    _logger.Warning("No, still waiting for the attached user.");
+                    _logger.Information("No, still waiting for the attached user.");
                 }
             }
         }
