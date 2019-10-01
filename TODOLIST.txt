@@ -1,24 +1,6 @@
-1. All orderby -> sort
-2. I think the if statement in the TradeRegsitrar which checks if the buyer account has associates then we don't register seller is wrong
-	we should register both jyuxer.
-3. In profitability checker we should consied whether the initial buyer or initial seller is the account we need
-4. In that case only registering a single account from start may be done ? -_-
-5. Historical downloader contains bugs and it's hard to sync with live trading system
-6. Remove code duplications (see TradeRegistrar)
-7. Write the actual trader
-8. There are some sortings that were depending on the trade Id, that's ridiculous
-9. Update fees
-
-
-10. see the strange output
-==============User detected with positive profit==============
-User ID : c6e33985-b17e-40e1-a1c7-693490e80bb1
-User profit: 0.37900214956443035%
-User trades count: 8 | 29.8510708000000000 USDT->29.9455978000000000 USDT->0.17672000 ETH->0.17700000 ETH->0.17745000 ETH->29.8950015000000000 USDT->0.17744000 ETH->29.9642070000000000 USDT
-Average trade threshold seconds: 402.98185709999996
-Minimal trade threshold seconds: 57.431
-Success count: 2
-Failed count: 2
-Start balance: 29.8510708000000000ETH
-Ending balance: 29.9642070000000000ETH
-==============================================================
+1. In that case only registering a single account from start may be done ? -_-
+2. Remove code duplications (see TradeRegistrar)
+3. Update fees
+4. Make an API to access the Repository information
+5. Implement fake and real autotraders
+6. Make sure UPS is can detect trader half of their activity

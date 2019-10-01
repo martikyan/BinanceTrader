@@ -22,7 +22,7 @@
 
         public int MinimalTraderActivityThresholdSeconds { get; set; }
 
-        public int MinimalTraderTrades { get; set; }
+        public int MinimalTraderTradesCount { get; set; }
 
         public double MinimalTraderProfitPercentage { get; set; }
     }
