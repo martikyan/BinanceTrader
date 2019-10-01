@@ -4,7 +4,7 @@ namespace BinanceTrader.Core.Models
 {
     public class TradeRegistrationContext
     {
-        public long TradeId { get; set; }
+        public Trade Trade { get; set; }
 
         public bool IsTradeRegistered { get; set; }
 

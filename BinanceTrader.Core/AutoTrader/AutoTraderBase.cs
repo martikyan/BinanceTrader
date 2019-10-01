@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using BinanceTrader.Core.Models;
 using Serilog;
 
@@ -9,9 +8,7 @@ namespace BinanceTrader.Core.AutoTrader
     {
         protected readonly CoreConfiguration _config;
         protected readonly ILogger _logger;
-
         protected SymbolAmountPair _walletBalance;
-        protected List<string> _attachedUserIds;
 
         protected AutoTraderBase(CoreConfiguration config, ILogger logger)
         {

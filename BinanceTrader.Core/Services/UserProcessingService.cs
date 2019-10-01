@@ -45,14 +45,14 @@ namespace BinanceTrader.Core.Services
 
             var walletsForCurrency1 = user.Wallets.Where(w => w.Symbol == _config.FirstSymbol);
             var walletsForCurrency2 = user.Wallets.Where(w => w.Symbol == _config.SecondSymbol);
-            var profit1 = CalculateProfitForWallets(walletsForCurrency1);
-            var profit2 = CalculateProfitForWallets(walletsForCurrency2);
+            var profit1 = CalculateProfitPerHour(walletsForCurrency1);
+            var profit2 = CalculateProfitPerHour(walletsForCurrency2);
 
             var selectedWallets = profit1 > profit2 ? walletsForCurrency1.ToList() : walletsForCurrency2.ToList();
-            profit.ProfitPercentage = profit1 > profit2 ? profit1 : profit2;
+            profit.ProfitPerHour = profit1 > profit2 ? profit1 : profit2;
             profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
 
-            if (selectedWallets.Count < 2 || profit.ProfitPercentage == default)
+            if (selectedWallets.Count < 2 || profit.ProfitPerHour == default)
             {
                 _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
                 profit.IsFullReport = false;
@@ -86,18 +86,25 @@ namespace BinanceTrader.Core.Services
             return profit;
         }
 
-        private static double CalculateProfitForWallets(IEnumerable<Wallet> wallets)
+        private static double CalculateProfitPerHour(IEnumerable<Wallet> wallets)
         {
-            var startingBalance = wallets.FirstOrDefault().Balance;
-            var endingBalance = wallets.LastOrDefault().Balance;
+            var firstWallet = wallets.FirstOrDefault();
+            var lastWallet = wallets.LastOrDefault();
 
-            if (startingBalance == default)
+            if (firstWallet == null || lastWallet == null || firstWallet == lastWallet)
             {
-                return 0.0;
+                return default;
             }
 
-            var percentage = (double)(endingBalance * 100m / startingBalance - 100m);
-            return percentage;
+            var hoursPassed = (lastWallet.WalletCreationDate - firstWallet.WalletCreationDate).TotalHours;
+            var actualPercentage = (double)(lastWallet.Balance * 100m / firstWallet.Balance - 100m);
+
+            if (hoursPassed == 0.0)
+            {
+                hoursPassed = 0.016; // 1 minute.
+            }
+
+            return actualPercentage / hoursPassed;
         }
     }
 }

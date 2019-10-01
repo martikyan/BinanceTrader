@@ -6,7 +6,7 @@ namespace BinanceTrader.Core.Models
     {
         public string CurrencySymbol { get; set; }
 
-        public double ProfitPercentage { get; set; }
+        public double ProfitPerHour { get; set; }
 
         public int WalletsCount { get; set; }
 

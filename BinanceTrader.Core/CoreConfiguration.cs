@@ -22,8 +22,8 @@
 
         public int MinimalTraderActivityThresholdSeconds { get; set; }
 
-        public int MinimalTraderTradesCount { get; set; }
+        public int MinimalTraderWalletsCount { get; set; }
 
-        public double MinimalTraderProfitPercentage { get; set; }
+        public double MinimalTraderProfitPerHourPercentage { get; set; }
     }
 }

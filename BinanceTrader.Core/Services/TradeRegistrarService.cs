@@ -28,7 +28,7 @@ namespace BinanceTrader.Core.Services
             _logger.Verbose($"Registering trade with Id {trade.TradeId}");
             var context = new TradeRegistrationContext()
             {
-                TradeId = trade.TradeId,
+                Trade = trade,
             };
 
             var quantity = trade.Quantity;
@@ -134,7 +134,8 @@ namespace BinanceTrader.Core.Services
                 Symbol = symbol,
                 OwnerId = user.Identifier,
                 Balance = balance,
-                WalletCreatedFromTradeId = context.TradeId,
+                WalletCreationDate = context.Trade.TradeTime,
+                WalletCreatedFromTradeId = context.Trade.TradeId,
             });
 
             _repository.AddOrUpdateUser(user);
@@ -154,13 +155,14 @@ namespace BinanceTrader.Core.Services
                     OwnerId = user.Identifier,
                     Symbol = pair.Symbol,
                     Balance = pair.Amount,
-                    WalletCreatedFromTradeId = context.TradeId,
+                    WalletCreationDate = context.Trade.TradeTime,
+                    WalletCreatedFromTradeId = context.Trade.TradeId,
                 };
 
                 user.Wallets.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
                 _logger.Debug($"User with Id {user.Identifier} got updated.");
-                UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.TradeId));
+                UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.Trade.TradeId));
             }
 
             return context;

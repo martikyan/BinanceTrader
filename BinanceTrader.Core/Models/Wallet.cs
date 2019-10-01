@@ -1,4 +1,6 @@
-﻿namespace BinanceTrader.Core.Models
+﻿using System;
+
+namespace BinanceTrader.Core.Models
 {
     public class Wallet
     {
@@ -9,5 +11,7 @@
         public decimal Balance { get; set; }
 
         public long WalletCreatedFromTradeId { get; set; }
+
+        public DateTime WalletCreationDate { get; set; }
     }
 }
