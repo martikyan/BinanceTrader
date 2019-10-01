@@ -42,7 +42,7 @@ namespace BinanceTrader.Core.AutoTrader
                 _lastTradeDate = DateTime.UtcNow;
                 var trade = _repo.GetTradeById(e.TradeId);
                 var user = _repo.GetUserById(e.UserId);
-                if (user.CurrentWallet.Symbol != _walletBalance.Symbol)
+                if (user.CurrentWallet.Symbol == _walletBalance.Symbol)
                 {
                     _logger.Warning($"Now trader hold the currency that we already have.");
                     return;
