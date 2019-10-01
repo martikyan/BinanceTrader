@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
