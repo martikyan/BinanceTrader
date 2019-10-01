@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using BinanceTrader.Core.Models;
 using Serilog;
 

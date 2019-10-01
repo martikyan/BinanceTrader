@@ -7,8 +7,6 @@ namespace BinanceTrader.Core.Models
     {
         public string Identifier { get; set; }
 
-        public double? FeePercentage { get; set; }
-
         public List<Wallet> Wallets { get; set; }
 
         public Wallet CurrentWallet => Wallets.LastOrDefault();
