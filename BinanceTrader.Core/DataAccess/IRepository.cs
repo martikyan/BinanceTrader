@@ -15,6 +15,8 @@ namespace BinanceTrader.Core.DataAccess
 
         void DeleteUser(string userId);
 
+        void DeleteUsers(IEnumerable<string> userIds);
+
         Trade GetTradeById(long tradeId);
 
         BinanceUser GetUserById(string userId);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using BinanceTrader.Core.Utils;
@@ -58,10 +59,12 @@ namespace BinanceTrader.Core.Services
             if (buyerAssociates.Count > sellerAssociates.Count)
             {
                 context = RegisterBuyerFromContext(context);
+                _repository.DeleteUsers(sellerAssociates.Select(u => u.Identifier));
             }
             else if (sellerAssociates.Count > buyerAssociates.Count)
             {
                 context = RegisterSellerFromContext(context);
+                _repository.DeleteUsers(buyerAssociates.Select(u => u.Identifier));
             }
             else
             {

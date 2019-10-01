@@ -53,6 +53,14 @@ namespace BinanceTrader.Core.DataAccess
             _usersCache.Remove(userId);
         }
 
+        public void DeleteUsers(IEnumerable<string> userIds)
+        {
+            foreach (var uId in userIds)
+            {
+                _usersCache.Remove(uId);
+            }
+        }
+
         public int GetCommonAmountLength(string symbol)
         {
             if (_commonAmountCache[symbol] != null)
