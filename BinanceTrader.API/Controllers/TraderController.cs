@@ -44,5 +44,12 @@ namespace BinanceTrader.API.Controllers
         {
             return Ok(_autoTrader.AttachedUsersHistory);
         }
+
+        [HttpGet]
+        public IActionResult DetachAttachedUser()
+        {
+            _autoTrader.DetachAttachedUser();
+            return Ok();
+        }
     }
 }

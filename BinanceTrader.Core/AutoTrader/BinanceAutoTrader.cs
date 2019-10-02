@@ -17,5 +17,10 @@ namespace BinanceTrader.Core.AutoTrader
         public List<string> AttachedUsersHistory => throw new NotImplementedException();
 
         public SymbolAmountPair CurrentWallet => throw new NotImplementedException();
+
+        public void DetachAttachedUser()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -17,5 +17,7 @@ namespace BinanceTrader.Core.AutoTrader
         UserProfitReport AttachedUserProfit { get; }
 
         EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; }
+
+        void DetachAttachedUser();
     }
 }

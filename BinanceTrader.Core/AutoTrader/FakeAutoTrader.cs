@@ -88,5 +88,10 @@ namespace BinanceTrader.Core.AutoTrader
                 return SymbolAmountPair.Create(_config.FirstSymbol, initial.Amount / price);
             }
         }
+
+        public void DetachAttachedUser()
+        {
+            AttachedUser = null;
+        }
     }
 }
