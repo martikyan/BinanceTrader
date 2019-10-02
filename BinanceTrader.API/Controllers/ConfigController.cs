@@ -17,9 +17,9 @@ namespace BinanceTrader.API.Controllers
         }
 
         [HttpGet]
-        public ObjectResult GetConfig()
+        public ObjectResult GetLimiters()
         {
-            return Ok(_config);
+            return Ok(_config.Limiters);
         }
 
         [HttpPost]

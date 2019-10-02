@@ -1,5 +1,4 @@
 1. Remove code duplications (see TradeRegistrar)
 2. Update fees
-3. Make an API to access the Repository information
-4. Implement the real autotrader
-5. Make the application work asynchronous
+3. Implement the real autotrader
+4. Make the application work asynchronous
