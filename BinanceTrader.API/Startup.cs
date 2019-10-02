@@ -1,4 +1,5 @@
-﻿using BinanceTrader.Core;
+﻿using System.Reflection;
+using BinanceTrader.Core;
 using BinanceTrader.Core.AutoTrader;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Services;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace BinanceTrader.API
 {
@@ -43,6 +45,10 @@ namespace BinanceTrader.API
             }
 
             services.AddHostedService<TraderHostedService>();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = Assembly.GetExecutingAssembly().FullName, Version = "v1" });
+            });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -59,7 +65,12 @@ namespace BinanceTrader.API
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", Assembly.GetExecutingAssembly().FullName);
+            });
+
             app.UseMvc();
         }
     }

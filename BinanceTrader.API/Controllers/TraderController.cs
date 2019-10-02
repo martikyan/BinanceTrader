@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BinanceTrader.API.Controllers
 {
     [ApiController]
-    [Route("[controller]/{action}")]
+    [Route("[controller]/[action]")]
     public class TraderController : Controller
     {
         private readonly IAutoTrader _autoTrader;

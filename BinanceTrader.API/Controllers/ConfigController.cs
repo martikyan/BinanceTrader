@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using BinanceTrader.Core;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,6 @@ namespace BinanceTrader.API.Controllers
     [Route("[controller]/[action]")]
     public class ConfigController : Controller
     {
-        private const BindingFlags _limitersPropsBindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase;
         private readonly CoreConfiguration _config;
 
         public ConfigController(CoreConfiguration config)
