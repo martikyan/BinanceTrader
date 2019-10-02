@@ -15,6 +15,7 @@ namespace BinanceTrader.API
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
+            .WriteTo.File("logs.txt", restrictedToMinimumLevel: LogEventLevel.Information)
             .CreateLogger();
 
             try
