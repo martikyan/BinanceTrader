@@ -50,10 +50,16 @@ namespace BinanceTrader.Core.Services
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
             {
                 var ping = (DateTime.UtcNow - trade.TradeTime).TotalSeconds;
-                if (ping > _config.MaximumAllowedTradeSyncSeconds || ping < 0)
+                if (ping > _config.Limiters.MaximumAllowedTradeSyncSeconds / 2 ||
+                    ping < _config.Limiters.MaximumAllowedTradeSyncSeconds / -2)
                 {
-                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.MaximumAllowedTradeSyncSeconds)}");
+                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximumAllowedTradeSyncSeconds)}");
                     Environment.Exit(1);
+                }
+
+                if (trade.Quantity <= _config.Limiters.MinimalTradeQuantity)
+                {
+                    return;
                 }
 
                 _logger.Verbose($"Detected trade with Id {trade.TradeId}");
@@ -84,9 +90,10 @@ namespace BinanceTrader.Core.Services
         {
             return
                 userProfit.IsFullReport &&
-                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.MinimalTraderActivityThresholdSeconds) &&
-                userProfit.WalletsCount >= _config.MinimalTraderWalletsCount &&
-                userProfit.ProfitPerHour >= _config.MinimalTraderProfitPerHourPercentage &&
+                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.Limiters.MinimalTraderActivityThresholdSeconds) &&
+                userProfit.WalletsCount >= _config.Limiters.MinimalTraderWalletsCount &&
+                userProfit.ProfitPerHour >= _config.Limiters.MinimalTraderProfitPerHourPercentage &&
+                userProfit.SuccessFailureRatio >= _config.Limiters.MinimalSuccessFailureRatio &&
                 userProfit.CurrencySymbol == _config.TargetCurrencySymbol;
         }
     }

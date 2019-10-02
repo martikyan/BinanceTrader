@@ -77,6 +77,7 @@ namespace BinanceTrader.Core.Services
                 diffList.Add(trades[i].TradeTime - trades[i - 1].TradeTime);
             }
 
+            profit.SuccessFailureRatio = CalculateSuccessFailureRatio(profit.SucceededTradesCount, profit.FailedTradesCount);
             profit.AverageTradeThreshold = TimeSpan.FromSeconds(diffList.Average(diff => diff.TotalSeconds));
             profit.MinimalTradeThreshold = TimeSpan.FromSeconds(diffList.Min(diff => diff.TotalSeconds));
             profit.StartBalance = selectedWallets.First().Balance;
@@ -84,6 +85,16 @@ namespace BinanceTrader.Core.Services
             profit.IsFullReport = true;
 
             return profit;
+        }
+
+        private static double CalculateSuccessFailureRatio(int successCount, int failureCount)
+        {
+            if (failureCount == 0)
+            {
+                return double.MaxValue;
+            }
+
+            return (double)successCount / failureCount;
         }
 
         private static double CalculateProfitPerHour(IEnumerable<Wallet> wallets)

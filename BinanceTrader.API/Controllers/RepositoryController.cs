@@ -1,11 +1,12 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using BinanceTrader.Core.DataAccess;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BinanceTrader.API.Controllers
 {
     [ApiController]
-    [Route("[controller]/{action}")]
+    [Route("[controller]/[action]")]
     public class RepositoryController : Controller
     {
         private readonly IRepository _repository;
@@ -15,8 +16,8 @@ namespace BinanceTrader.API.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        [HttpGet("{userId}")]
-        public ObjectResult GetUserById([FromQuery]string userId)
+        [HttpGet]
+        public ObjectResult GetUserById([FromQuery][Required]string userId)
         {
             if (!ModelState.IsValid)
             {
@@ -32,8 +33,8 @@ namespace BinanceTrader.API.Controllers
             return Ok(user);
         }
 
-        [HttpGet("{tradeId}")]
-        public ObjectResult GetTradeById([FromQuery]long tradeId)
+        [HttpGet]
+        public ObjectResult GetTradeById([FromQuery][Required]long tradeId)
         {
             if (!ModelState.IsValid)
             {

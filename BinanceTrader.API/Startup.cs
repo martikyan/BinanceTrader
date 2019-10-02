@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace BinanceTrader.API
 {
@@ -26,7 +27,7 @@ namespace BinanceTrader.API
             Configuration.GetSection(nameof(CoreConfiguration)).Bind(config);
 
             services.AddSingleton(config);
-            services.AddSingleton(Serilog.Log.Logger);
+            services.AddSingleton(Log.Logger);
             services.AddSingleton<UserProcessingService>();
             services.AddSingleton<TradeRegistrarService>();
             services.AddSingleton<TradeProcessingService>();

@@ -14,6 +14,8 @@ namespace BinanceTrader.Core.Models
 
         public int FailedTradesCount { get; set; }
 
+        public double SuccessFailureRatio { get; set; }
+
         public TimeSpan AverageTradeThreshold { get; set; }
 
         public TimeSpan MinimalTradeThreshold { get; set; }

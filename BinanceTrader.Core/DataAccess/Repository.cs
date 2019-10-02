@@ -115,7 +115,7 @@ namespace BinanceTrader.Core.DataAccess
         {
             var policy = new CacheItemPolicy()
             {
-                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(_config.MemoryInSeconds),
+                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(_config.Limiters.MemoryInSeconds),
             };
 
             return policy;
