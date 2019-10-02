@@ -1,25 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using Serilog;
 
 namespace BinanceTrader.Core.AutoTrader
 {
-    public class FakeAutoTrader : AutoTraderBase
+    public class FakeAutoTrader : IAutoTrader
     {
+        private readonly CoreConfiguration _config;
         private readonly IRepository _repo;
+        private readonly ILogger _logger;
         private DateTime _lastTradeDate;
-        private BinanceUser _attachedUser;
-        private UserProfitReport _attachedUserProfit;
+
+        public BinanceUser AttachedUser { get; private set; }
+        public UserProfitReport AttachedUserProfit { get; private set; }
+        public List<SymbolAmountPair> WalletHistory { get; private set; }
+        public List<string> AttachedUsersHistory { get; private set; }
+        public SymbolAmountPair CurrentWallet { get; private set; }
+        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => HandleEvent;
 
         public FakeAutoTrader(CoreConfiguration config, IRepository repo, ILogger logger)
-            : base(config, logger)
         {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _walletBalance = SymbolAmountPair.Create(config.TargetCurrencySymbol, 11m);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            CurrentWallet = SymbolAmountPair.Create(config.TargetCurrencySymbol, 11m);
+            WalletHistory = new List<SymbolAmountPair>() { CurrentWallet };
+            AttachedUsersHistory = new List<string>();
         }
 
-        protected override void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
+        protected void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
             if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
             {
@@ -27,37 +39,39 @@ namespace BinanceTrader.Core.AutoTrader
                 return;
             }
 
-            if (_attachedUser == null || _attachedUser.Identifier == e.UserId)
+            if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
             {
-                if (_attachedUser == null)
+                if (AttachedUser == null)
                 {
                     _logger.Information($"Attaching to user with Id: {e.UserId}");
-                    _attachedUserProfit = e.Report;
-                    _attachedUser = _repo.GetUserById(e.UserId);
+                    AttachedUsersHistory.Add(e.UserId);
+                    AttachedUserProfit = e.Report;
+                    AttachedUser = _repo.GetUserById(e.UserId);
                 }
 
                 _logger.Information("Attached user traded. Repeating actions.");
                 var trade = _repo.GetTradeById(e.TradeId);
                 _lastTradeDate = trade.TradeTime;
-                if (_attachedUser.CurrentWallet.Symbol == _walletBalance.Symbol)
+                if (AttachedUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
                 {
                     _logger.Information("Currently the trader holds the currency that we already have.");
                     return;
                 }
 
-                _logger.Warning($"Wallet balance was {_walletBalance.Amount}{_walletBalance.Symbol}");
-                _logger.Warning($"Selling {_walletBalance.Amount}{_walletBalance.Symbol} and buying {_attachedUser.CurrentWallet.Symbol}");
-                _walletBalance = CalculateWalletBalanceAfterTrade(_walletBalance, trade.Price);
-                _logger.Warning($"After selling balance is {_walletBalance.Amount}{_walletBalance.Symbol}");
+                _logger.Warning($"Wallet balance was {CurrentWallet.Amount}{CurrentWallet.Symbol}");
+                _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol}");
+                CurrentWallet = CalculateWalletBalanceAfterTrade(CurrentWallet, trade.Price);
+                WalletHistory.Add(CurrentWallet);
+                _logger.Warning($"After selling balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
             }
             else
             {
-                var maxTimeToWaitForAttachedUser = _attachedUserProfit.AverageTradeThreshold * 2;
+                var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
                 if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.ProfitPerHour > _attachedUserProfit.ProfitPerHour)
+                    e.Report.ProfitPerHour > AttachedUserProfit.ProfitPerHour)
                 {
                     _logger.Information("Detaching current user.");
-                    _attachedUser = null;
+                    AttachedUser = null;
                     HandleEvent(this, e);
                 }
             }

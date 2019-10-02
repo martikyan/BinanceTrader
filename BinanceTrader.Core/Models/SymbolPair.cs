@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BinanceTrader.Core.Models
 {
@@ -28,14 +29,17 @@ namespace BinanceTrader.Core.Models
             return other.ToString() == this.ToString();
         }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Symbol1, Symbol2, 12);
-        }
-
         public override string ToString()
         {
             return $"{Symbol1}{Symbol2}";
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1661608135;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Symbol1);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Symbol2);
+            return hashCode;
         }
     }
 }
