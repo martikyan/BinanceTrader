@@ -1,10 +1,10 @@
-﻿using System;
-using Binance.Net;
+﻿using Binance.Net;
 using Binance.Net.Objects;
 using BinanceTrader.Core.Extensions;
 using BinanceTrader.Core.Models;
 using CryptoExchange.Net.Authentication;
 using Serilog;
+using System;
 
 namespace BinanceTrader.Core.Services
 {
@@ -42,7 +42,7 @@ namespace BinanceTrader.Core.Services
                 throw new InvalidOperationException($"{nameof(TradeProcessingService)} was already started processing live trades.");
             }
             _logger.Debug("Starting processing live trades.");
-            var symbolPair = new SymbolPair(_config.FirstSymbol, _config.SecondSymbol);
+            var symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
 
             _isStarted = true;
             _tradeRegistrar.UserTraded += OnUserTraded;

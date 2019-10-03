@@ -1,4 +1,6 @@
-﻿namespace BinanceTrader.Core
+﻿using System;
+
+namespace BinanceTrader.Core
 {
     public class CoreConfiguration
     {
@@ -13,6 +15,8 @@
         public string TargetCurrencySymbol { get; set; }
 
         public bool EnableAutoTrade { get; set; }
+
+        public int MaxTraderLockSeconds { get; set; }
 
         public Limiters Limiters { get; set; }
     }

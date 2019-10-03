@@ -5,6 +5,10 @@ namespace BinanceTrader.Core.DataAccess
 {
     public interface IRepository
     {
+        void BlacklistOrderId(long orderId);
+
+        bool IsOrderIdBlackListed(long orderId);
+
         int GetCommonAmountLength(string symbol);
 
         void AddOrUpdateTrade(Trade trade);

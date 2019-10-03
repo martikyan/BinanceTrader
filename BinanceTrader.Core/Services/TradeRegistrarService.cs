@@ -45,6 +45,12 @@ namespace BinanceTrader.Core.Services
                 return context;
             }
 
+            if (_repository.IsOrderIdBlackListed(trade.SellerOrderId) ||
+                _repository.IsOrderIdBlackListed(trade.BuyerOrderId))
+            {
+                _logger.Verbose($"Trade with Id {trade.TradeId} was created from blacklisted order. Skipping the trade.");
+            }
+
             _logger.Verbose($"Trade with Id {trade.TradeId} was a complex trade. Registering.");
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;

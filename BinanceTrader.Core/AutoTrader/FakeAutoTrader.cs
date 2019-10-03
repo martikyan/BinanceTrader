@@ -31,7 +31,7 @@ namespace BinanceTrader.Core.AutoTrader
             AttachedUsersHistory = new List<string>();
         }
 
-        protected void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
+        private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
             if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
             {
