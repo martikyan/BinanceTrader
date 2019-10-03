@@ -56,14 +56,14 @@ namespace BinanceTrader.Core.Services
             if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximumAllowedTradeSyncSeconds))
             {
                 _logger.Information($"User with Id {user.Identifier} had last trade with Id {lastTrade.TradeId} out of sync.");
-                profit.IsFullReport = false;
+                profit.IsFullReport = true;
                 return profit;
             }
 
             if (selectedWallets.Count < 2 || profit.AverageProfitPerHour == default)
             {
                 _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
-                profit.IsFullReport = false;
+                profit.IsFullReport = true;
                 return profit;
             }
 

@@ -81,11 +81,11 @@ namespace BinanceTrader.Core.AutoTrader
         {
             if (initial.Symbol == _config.FirstSymbol)
             {
-                return SymbolAmountPair.Create(_config.SecondSymbol, price * initial.Amount);
+                return SymbolAmountPair.Create(_config.SecondSymbol, price * initial.Amount * 0.999m);
             }
             else
             {
-                return SymbolAmountPair.Create(_config.FirstSymbol, initial.Amount / price);
+                return SymbolAmountPair.Create(_config.FirstSymbol, initial.Amount / price * 0.999m);
             }
         }
 
