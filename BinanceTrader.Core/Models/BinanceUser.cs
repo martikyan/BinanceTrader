@@ -7,8 +7,8 @@ namespace BinanceTrader.Core.Models
     {
         public string Identifier { get; set; }
 
-        public List<Wallet> Wallets { get; set; }
+        public List<Wallet> WalletsHistory { get; set; }
 
-        public Wallet CurrentWallet => Wallets.LastOrDefault();
+        public Wallet CurrentWallet => WalletsHistory.LastOrDefault();
     }
 }

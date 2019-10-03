@@ -33,34 +33,42 @@ namespace BinanceTrader.Core.AutoTrader
             CurrentWallet = GetCurrentWalletAsync().Result;
         }
 
-        public List<SymbolAmountPair> WalletHistory { get; private set; }
-
-        public BinanceUser AttachedUser { get; private set; }
-
-        public UserProfitReport AttachedUserProfit { get; private set; }
-
         public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => HandleEventAsync;
-
-        public List<string> AttachedUsersHistory { get; private set; }
-
+        public List<SymbolAmountPair> WalletHistory { get; private set; } = new List<SymbolAmountPair>();
+        public List<string> AttachedUsersHistory { get; private set; } = new List<string>();
+        public BinanceUser AttachedUser { get; private set; }
+        public UserProfitReport AttachedUserProfit { get; private set; }
         public SymbolAmountPair CurrentWallet { get; private set; }
 
         public void DetachAttachedUser()
         {
-            throw new NotImplementedException();
+            AttachedUser = null;
         }
 
         private async Task<SymbolAmountPair> GetCurrentWalletAsync()
         {
             using (var client = CreateBinanceClient())
             {
+                var price = await client.GetPriceAsync(_symbolPair.ToString());
                 var accountInfo = await client.GetAccountInfoAsync();
-                var balance = accountInfo.Data.Balances
-                    .Where(b => b.Asset == _symbolPair.Symbol1 || b.Asset == _symbolPair.Symbol2)
-                    .OrderBy(b => b.Total)
+                var s1b = accountInfo.Data.Balances
+                    .Where(b => b.Asset == _symbolPair.Symbol1)
                     .First();
 
-                return SymbolAmountPair.Create(balance.Asset, balance.Total);
+                var s2b = accountInfo.Data.Balances
+                    .Where(b => b.Asset == _symbolPair.Symbol2)
+                    .First();
+
+                var s1pcb = s1b.Total * price.Data.Price;
+                if (s1pcb > s2b.Total)
+                {
+                    return SymbolAmountPair.Create(s1b.Asset, s1b.Total);
+                }
+                else
+                {
+                    return SymbolAmountPair.Create(s2b.Asset, s2b.Total);
+                }
+
             }
         }
 
@@ -104,7 +112,7 @@ namespace BinanceTrader.Core.AutoTrader
 
                 if (_isTradingLocked)
                 {
-                    _logger.Information($"Trading is locked. Skipping profitable user traded with user Id: {e.UserId}");
+                    _logger.Information($"Trading is locked. Skipping profitable user with Id: {e.UserId}");
                     return;
                 }
                 else
@@ -130,6 +138,7 @@ namespace BinanceTrader.Core.AutoTrader
                 }
 
                 _logger.Information("Attached user traded. Repeating actions.");
+
                 var trade = _repo.GetTradeById(e.TradeId);
                 _lastTradeDate = trade.TradeTime;
                 if (AttachedUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
@@ -138,13 +147,20 @@ namespace BinanceTrader.Core.AutoTrader
                     return;
                 }
 
-                _logger.Warning($"Wallet balance was {CurrentWallet.Amount}{CurrentWallet.Symbol}");
-                _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol}");
-
                 using (var client = CreateBinanceClient())
                 {
                     var orderSide = CurrentWallet.Symbol == _symbolPair.Symbol1 ? OrderSide.Sell : OrderSide.Buy;
-                    var placeOrderResult = await client.PlaceOrderAsync(_symbolPair.ToString(), orderSide, OrderType.Limit, CurrentWallet.Amount);
+                    if (! await IsFeeProfitableAsync(e.Report, client, orderSide))
+                    {
+                        _logger.Information($"Attached user average profit per hour: {e.Report.AverageProfitPerHour}");
+                        _logger.Information($"Attached user trades per hour: {e.Report.AverageTradesPerHour}");
+                        _logger.Warning($"User with Id {e.UserId} was not fee profitable. Detaching them.");
+                        DetachAttachedUser();
+                    }
+
+                    _logger.Warning($"Wallet balance was {CurrentWallet.Amount}{CurrentWallet.Symbol}");
+                    _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol}");
+                    var placeOrderResult = await client.PlaceOrderAsync(_symbolPair.ToString(), orderSide, OrderType.Limit, CurrentWallet.Amount, timeInForce: TimeInForce.FillOrKill);
                     _repo.BlacklistOrderId(placeOrderResult.Data.OrderId);
 
                     _isTradingLocked = true;
@@ -157,13 +173,22 @@ namespace BinanceTrader.Core.AutoTrader
             {
                 var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
                 if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.ProfitPerHour > AttachedUserProfit.ProfitPerHour)
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
                 {
                     _logger.Information("Detaching current user.");
                     AttachedUser = null;
                     HandleEventAsync(this, e);
                 }
             }
+        }
+
+        private async Task<bool> IsFeeProfitableAsync(UserProfitReport upr, BinanceClient client, OrderSide orderSide)
+        {
+            var accountInfo = await client.GetAccountInfoAsync();
+            var currentFeePercentage = orderSide == OrderSide.Buy ? accountInfo.Data.BuyerCommission : accountInfo.Data.SellerCommission;
+            currentFeePercentage += accountInfo.Data.MakerCommission;
+            currentFeePercentage /= 10000;
+            return upr.AverageTradesPerHour * (double)currentFeePercentage > upr.AverageProfitPerHour;
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using Binance.Net;
+﻿using System;
+using Binance.Net;
 using Binance.Net.Objects;
 using BinanceTrader.Core.Extensions;
 using BinanceTrader.Core.Models;
 using CryptoExchange.Net.Authentication;
 using Serilog;
-using System;
 
 namespace BinanceTrader.Core.Services
 {
@@ -53,8 +53,7 @@ namespace BinanceTrader.Core.Services
                 if (ping > _config.Limiters.MaximumAllowedTradeSyncSeconds / 2 ||
                     ping < _config.Limiters.MaximumAllowedTradeSyncSeconds / -2)
                 {
-                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximumAllowedTradeSyncSeconds)}");
-                    Environment.Exit(1);
+                    _logger.Warning($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximumAllowedTradeSyncSeconds)}");
                 }
 
                 if (trade.Quantity <= _config.Limiters.MinimalTradeQuantity)
@@ -92,8 +91,7 @@ namespace BinanceTrader.Core.Services
                 userProfit.IsFullReport &&
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.Limiters.MinimalTraderActivityThresholdSeconds) &&
                 userProfit.WalletsCount >= _config.Limiters.MinimalTraderWalletsCount &&
-                userProfit.ProfitPerHour >= _config.Limiters.MinimalTraderProfitPerHourPercentage &&
-                userProfit.SuccessFailureRatio >= _config.Limiters.MinimalSuccessFailureRatio &&
+                userProfit.AverageProfitPerHour >= _config.Limiters.MinimalTraderProfitPerHourPercentage &&
                 userProfit.CurrencySymbol == _config.TargetCurrencySymbol;
         }
     }

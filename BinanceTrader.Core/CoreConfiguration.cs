@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BinanceTrader.Core
+﻿namespace BinanceTrader.Core
 {
     public class CoreConfiguration
     {

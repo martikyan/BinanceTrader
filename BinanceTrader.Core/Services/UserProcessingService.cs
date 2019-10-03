@@ -33,53 +33,50 @@ namespace BinanceTrader.Core.Services
             _logger.Verbose($"Starting profit calculation for user with Id: {user.Identifier}");
             var profit = new UserProfitReport()
             {
-                WalletsCount = user.Wallets.Count,
+                WalletsCount = user.WalletsHistory.Count,
             };
 
             var trades = new List<Trade>();
-            foreach (var tradeId in user.Wallets.Select(w => w.WalletCreatedFromTradeId))
+            foreach (var tradeId in user.WalletsHistory.Select(w => w.WalletCreatedFromTradeId))
             {
                 var trade = _repository.GetTradeById(tradeId);
                 trades.Add(trade);
             }
 
-            var walletsForCurrency1 = user.Wallets.Where(w => w.Symbol == _config.FirstSymbol);
-            var walletsForCurrency2 = user.Wallets.Where(w => w.Symbol == _config.SecondSymbol);
+            var walletsForCurrency1 = user.WalletsHistory.Where(w => w.Symbol == _config.FirstSymbol);
+            var walletsForCurrency2 = user.WalletsHistory.Where(w => w.Symbol == _config.SecondSymbol);
             var profit1 = CalculateProfitPerHour(walletsForCurrency1);
             var profit2 = CalculateProfitPerHour(walletsForCurrency2);
 
             var selectedWallets = profit1 > profit2 ? walletsForCurrency1.ToList() : walletsForCurrency2.ToList();
-            profit.ProfitPerHour = profit1 > profit2 ? profit1 : profit2;
+            profit.AverageProfitPerHour = profit1 > profit2 ? profit1 : profit2;
             profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
 
-            if (selectedWallets.Count < 2 || profit.ProfitPerHour == default)
+            var lastTrade = _repository.GetTradeById(user.CurrentWallet.WalletCreatedFromTradeId);
+            if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximumAllowedTradeSyncSeconds))
+            {
+                _logger.Information($"User with Id {user.Identifier} had last trade with Id {lastTrade.TradeId} out of sync.");
+                profit.IsFullReport = false;
+                return profit;
+            }
+
+            if (selectedWallets.Count < 2 || profit.AverageProfitPerHour == default)
             {
                 _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
                 profit.IsFullReport = false;
                 return profit;
             }
 
-            for (int i = 1; i < selectedWallets.Count; i++)
-            {
-                if (selectedWallets[i - 1].Balance < selectedWallets[i].Balance)
-                {
-                    profit.SucceededTradesCount++;
-                }
-                else if (selectedWallets[i - 1].Balance > selectedWallets[i].Balance)
-                {
-                    profit.FailedTradesCount++;
-                }
-            }
-
-            var diffList = new List<TimeSpan>(capacity: trades.Count - 1);
+            var dateDiffList = new List<TimeSpan>(capacity: trades.Count - 1);
             for (int i = 1; i < trades.Count; i++)
             {
-                diffList.Add(trades[i].TradeTime - trades[i - 1].TradeTime);
+                dateDiffList.Add(trades[i].TradeTime - trades[i - 1].TradeTime);
             }
 
-            profit.SuccessFailureRatio = CalculateSuccessFailureRatio(profit.SucceededTradesCount, profit.FailedTradesCount);
-            profit.AverageTradeThreshold = TimeSpan.FromSeconds(diffList.Average(diff => diff.TotalSeconds));
-            profit.MinimalTradeThreshold = TimeSpan.FromSeconds(diffList.Min(diff => diff.TotalSeconds));
+            profit.TotalTradesCount = user.WalletsHistory.Count + 1;
+            profit.AverageTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Average(diff => diff.TotalSeconds));
+            profit.MinimalTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Min(diff => diff.TotalSeconds));
+            profit.AverageTradesPerHour = CalculateTradesPerHour(profit.TotalTradesCount, profit.AverageTradeThreshold);
             profit.StartBalance = selectedWallets.First().Balance;
             profit.EndBalance = selectedWallets.Last().Balance;
             profit.IsFullReport = true;
@@ -87,14 +84,14 @@ namespace BinanceTrader.Core.Services
             return profit;
         }
 
-        private static double CalculateSuccessFailureRatio(int successCount, int failureCount)
+        private static double CalculateTradesPerHour(int totalTrades, TimeSpan tradeAverageThreshold)
         {
-            if (failureCount == 0)
+            if (tradeAverageThreshold.TotalMilliseconds == 0.0)
             {
-                return double.MaxValue;
+                return default;
             }
 
-            return (double)successCount / failureCount;
+            return totalTrades * TimeSpan.FromHours(1).TotalMilliseconds / tradeAverageThreshold.TotalMilliseconds;
         }
 
         private static double CalculateProfitPerHour(IEnumerable<Wallet> wallets)
@@ -112,7 +109,7 @@ namespace BinanceTrader.Core.Services
 
             if (hoursPassed == 0.0)
             {
-                hoursPassed = 0.016; // 1 minute.
+                hoursPassed = TimeSpan.FromSeconds(1).TotalHours;
             }
 
             return actualPercentage / hoursPassed;

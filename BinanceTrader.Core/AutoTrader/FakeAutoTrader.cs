@@ -68,7 +68,7 @@ namespace BinanceTrader.Core.AutoTrader
             {
                 var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
                 if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.ProfitPerHour > AttachedUserProfit.ProfitPerHour)
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
                 {
                     _logger.Information("Detaching current user.");
                     AttachedUser = null;

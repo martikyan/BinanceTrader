@@ -131,11 +131,11 @@ namespace BinanceTrader.Core.Services
         {
             var user = new BinanceUser()
             {
-                Wallets = new List<Wallet>(),
+                WalletsHistory = new List<Wallet>(),
                 Identifier = IdentificationUtilities.GetRandomIdentifier(),
             };
 
-            user.Wallets.Add(new Wallet()
+            user.WalletsHistory.Add(new Wallet()
             {
                 Symbol = symbol,
                 OwnerId = user.Identifier,
@@ -165,7 +165,7 @@ namespace BinanceTrader.Core.Services
                     WalletCreatedFromTradeId = context.Trade.TradeId,
                 };
 
-                user.Wallets.Add(newWallet);
+                user.WalletsHistory.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
                 _logger.Debug($"User with Id {user.Identifier} got updated.");
                 UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.Trade.TradeId));

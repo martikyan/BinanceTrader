@@ -15,7 +15,5 @@
         public double MaximumAllowedTradeSyncSeconds { get; set; }
 
         public double MinimalTraderProfitPerHourPercentage { get; set; }
-
-        public double MinimalSuccessFailureRatio { get; set; }
     }
 }
