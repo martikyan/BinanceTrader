@@ -67,12 +67,17 @@ namespace BinanceTrader.Core.AutoTrader
             else
             {
                 var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
-                if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
+                var eventOwnerUser = _repo.GetUserById(e.UserId);
+
+                if (eventOwnerUser.CurrentWallet.Symbol != CurrentWallet.Symbol)
                 {
-                    _logger.Information("Detaching current user.");
-                    AttachedUser = null;
-                    HandleEvent(this, e);
+                    if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
+                    {
+                        _logger.Information("Detaching current user.");
+                        AttachedUser = null;
+                        HandleEvent(this, e);
+                    }
                 }
             }
         }
