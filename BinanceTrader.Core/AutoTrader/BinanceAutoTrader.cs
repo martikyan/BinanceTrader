@@ -163,11 +163,9 @@ namespace BinanceTrader.Core.AutoTrader
 
                 _logger.Information("Attached user traded. Repeating actions.");
 
-                var trade = _repo.GetTradeById(e.TradeId);
-                _lastTradeDate = trade.TradeTime;
-
                 using (var client = CreateBinanceClient())
                 {
+                    var trade = _repo.GetTradeById(e.TradeId);
                     var orderSide = CurrentWallet.Symbol == _symbolPair.Symbol1 ? OrderSide.Sell : OrderSide.Buy;
                     var priceResult = client.GetPrice(_symbolPair.ToString());
                     var price = priceResult.Data.Price;
@@ -187,6 +185,7 @@ namespace BinanceTrader.Core.AutoTrader
                     _repo.BlacklistOrderId(placeOrderResult.Data.OrderId);
 
                     _isTradingLocked = true;
+                    _lastTradeDate = trade.TradeTime;
                     _lastLockTime = DateTime.UtcNow;
                     _lockedDueToOrderId = placeOrderResult.Data.OrderId;
                 }
