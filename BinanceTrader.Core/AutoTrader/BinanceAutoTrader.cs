@@ -33,7 +33,14 @@ namespace BinanceTrader.Core.AutoTrader
             CurrentWallet = GetCurrentWallet();
         }
 
-        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => HandleEvent;
+        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => (sender, args) =>
+        {
+            lock (_lockObject)
+            {
+                HandleEvent(sender, args);
+            }
+        };
+
         public List<SymbolAmountPair> WalletHistory { get; private set; } = new List<SymbolAmountPair>();
         public List<string> AttachedUsersHistory { get; private set; } = new List<string>();
         public BinanceUser AttachedUser { get; private set; }
@@ -42,6 +49,7 @@ namespace BinanceTrader.Core.AutoTrader
 
         public void DetachAttachedUser()
         {
+            _logger.Information($"Detaching user with Id {AttachedUser?.Identifier}");
             AttachedUser = null;
         }
 
@@ -109,106 +117,99 @@ namespace BinanceTrader.Core.AutoTrader
 
         private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
-            lock (_lockObject)
+            if (_isTradingLocked)
             {
+                UpdateLockedState();
+
                 if (_isTradingLocked)
                 {
-                    UpdateLockedState();
-
-                    if (_isTradingLocked)
-                    {
-                        _logger.Information($"Trading is locked. Skipping profitable user with Id: {e.UserId}");
-                        return;
-                    }
-                    else
-                    {
-                        CurrentWallet = GetCurrentWallet();
-                    }
-                }
-
-                if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
-                {
-                    _logger.Information("Report was not targeting our currency symbol.");
+                    _logger.Information($"Trading is locked. Skipping profitable user with Id: {e.UserId}");
                     return;
-                }
-
-                if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
-                {
-                    if (AttachedUser == null)
-                    {
-                        _logger.Information($"Attaching to user with Id: {e.UserId}");
-                        AttachedUsersHistory.Add(e.UserId);
-                        AttachedUserProfit = e.Report;
-                        AttachedUser = _repo.GetUserById(e.UserId);
-                    }
-
-                    _logger.Information("Attached user traded. Repeating actions.");
-
-                    var trade = _repo.GetTradeById(e.TradeId);
-                    _lastTradeDate = trade.TradeTime;
-                    if (AttachedUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
-                    {
-                        _logger.Information("Currently the trader holds the currency that we already have.");
-                        return;
-                    }
-
-                    using (var client = CreateBinanceClient())
-                    {
-                        var orderSide = CurrentWallet.Symbol == _symbolPair.Symbol1 ? OrderSide.Sell : OrderSide.Buy;
-                        var feePercentage = GetCurrentFeePercentage(client, orderSide);
-
-                        if (!IsFeeProfitable(e.Report, feePercentage))
-                        {
-                            _logger.Information($"Attached user average profit per hour: {e.Report.AverageProfitPerHour}");
-                            _logger.Information($"Attached user trades per hour: {e.Report.AverageTradesPerHour}");
-                            _logger.Warning($"User with Id {e.UserId} was not fee profitable. Detaching them.");
-                            DetachAttachedUser();
-                            return;
-                        }
-
-                        var priceResult = client.GetPrice(_symbolPair.ToString());
-                        var price = priceResult.Data.Price;
-                        var amountToTrade = CurrentWallet.Symbol == _symbolPair.Symbol1 ? CurrentWallet.Amount : CurrentWallet.Amount / price;
-
-                        _logger.Warning($"Wallet balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
-                        _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol} with price of {price}.");
-
-                        var placeOrderResult = client.PlaceOrder(_symbolPair.ToString(), orderSide, OrderType.Limit, amountToTrade, price: price, timeInForce: TimeInForce.GoodTillCancel);
-                        _repo.BlacklistOrderId(placeOrderResult.Data.OrderId);
-
-                        _isTradingLocked = true;
-                        _lastLockTime = DateTime.UtcNow;
-                        _lockedDueToOrderId = placeOrderResult.Data.OrderId;
-                    }
-                    _logger.Warning($"Locked account until order with Id {_lockedDueToOrderId} become filled/expired/rejected.");
                 }
                 else
                 {
-                    var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
-                    if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                        e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
-                    {
-                        _logger.Information("Detaching current user.");
-                        AttachedUser = null;
-                        HandleEvent(this, e);
-                    }
+                    CurrentWallet = GetCurrentWallet();
                 }
             }
-        }
 
-        private decimal GetCurrentFeePercentage(BinanceClient client, OrderSide orderSide)
-        {
-            var accountInfo = client.GetAccountInfo();
-            var currentFeePercentage = orderSide == OrderSide.Buy ? accountInfo.Data.BuyerCommission : accountInfo.Data.SellerCommission;
-            currentFeePercentage += accountInfo.Data.MakerCommission;
-            currentFeePercentage /= 10000;
+            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
+            {
+                _logger.Information("Report was not targeting our currency symbol.");
+                return;
+            }
 
-            return currentFeePercentage;
-        }
+            var traderUser = _repo.GetUserById(e.UserId);
+            if (traderUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
+            {
+                _logger.Information("Currently the trader holds the currency that we already have.");
+                return;
+            }
 
-        private bool IsFeeProfitable(UserProfitReport upr, decimal feePercentage)
-        {
-            return upr.AverageTradesPerHour * (double)feePercentage > upr.AverageProfitPerHour;
+            if (e.Report.AverageProfitPerHour < _config.Limiters.MinimalTraderProfitPerHourPercentage ||
+                e.Report.AverageTradesPerHour > _config.Limiters.MaximalTraderTradesCountPerHour)
+            {
+                _logger.Information("Limiters were not satisfied.");
+                if (AttachedUser.Identifier == e.UserId)
+                {
+                    DetachAttachedUser();
+                }
+
+                return;
+            }
+
+            if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
+            {
+                if (AttachedUser == null)
+                {
+                    _logger.Information($"Attaching to user with Id: {e.UserId}");
+                    AttachedUsersHistory.Add(e.UserId);
+                    AttachedUserProfit = e.Report;
+                    AttachedUser = traderUser;
+                }
+
+                _logger.Information("Attached user traded. Repeating actions.");
+
+                var trade = _repo.GetTradeById(e.TradeId);
+                _lastTradeDate = trade.TradeTime;
+
+                using (var client = CreateBinanceClient())
+                {
+                    var orderSide = CurrentWallet.Symbol == _symbolPair.Symbol1 ? OrderSide.Sell : OrderSide.Buy;
+                    var priceResult = client.GetPrice(_symbolPair.ToString());
+                    var price = priceResult.Data.Price;
+                    var amountToTrade = CurrentWallet.Symbol == _symbolPair.Symbol1 ? CurrentWallet.Amount : CurrentWallet.Amount / price;
+
+                    _logger.Warning($"Wallet balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
+                    _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol} with price of {price}.");
+
+                    var placeOrderResult = client.PlaceOrder(
+                        timeInForce: TimeInForce.GoodTillCancel,
+                        symbol: _symbolPair.ToString(),
+                        quantity: amountToTrade,
+                        type: OrderType.Limit,
+                        side: orderSide,
+                        price: price);
+
+                    _repo.BlacklistOrderId(placeOrderResult.Data.OrderId);
+
+                    _isTradingLocked = true;
+                    _lastLockTime = DateTime.UtcNow;
+                    _lockedDueToOrderId = placeOrderResult.Data.OrderId;
+                }
+                _logger.Warning($"Locked the trading until the order with Id {_lockedDueToOrderId} become filled/expired/rejected.");
+            }
+            else
+            {
+                var maxSecondsToWait = AttachedUserProfit.AverageTradeThreshold.TotalSeconds;
+                maxSecondsToWait = Math.Min(maxSecondsToWait, _config.Limiters.MaximalSecondsToWaitForTheTrader);
+
+                if (DateTime.UtcNow - _lastTradeDate > TimeSpan.FromSeconds(maxSecondsToWait) ||
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
+                {
+                    DetachAttachedUser();
+                    HandleEvent(this, e);
+                }
+            }
         }
     }
 }

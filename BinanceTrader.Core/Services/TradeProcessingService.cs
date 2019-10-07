@@ -50,10 +50,10 @@ namespace BinanceTrader.Core.Services
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
             {
                 var ping = (DateTime.UtcNow - trade.TradeTime).TotalSeconds;
-                if (ping > _config.Limiters.MaximumAllowedTradeSyncSeconds / 2 ||
-                    ping < _config.Limiters.MaximumAllowedTradeSyncSeconds / -2)
+                if (ping > _config.Limiters.MaximalAllowedTradeSyncSeconds / 2 ||
+                    ping < _config.Limiters.MaximalAllowedTradeSyncSeconds / -2)
                 {
-                    _logger.Warning($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximumAllowedTradeSyncSeconds)}");
+                    _logger.Warning($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximalAllowedTradeSyncSeconds)}");
                 }
 
                 if (trade.Quantity <= _config.Limiters.MinimalTradeQuantity)

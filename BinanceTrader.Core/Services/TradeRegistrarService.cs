@@ -55,8 +55,8 @@ namespace BinanceTrader.Core.Services
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
 
-            var buyerAssociates = _repository.GetUsersWithBalance(context.BuyingPair.Amount, context.BuyingPair.Symbol, _config.Limiters.MaximumTradeFeePercentage);
-            var sellerAssociates = _repository.GetUsersWithBalance(context.SellingPair.Amount, context.SellingPair.Symbol, _config.Limiters.MaximumTradeFeePercentage);
+            var buyerAssociates = _repository.GetUsersWithBalance(context.BuyingPair.Amount, context.BuyingPair.Symbol, _config.Limiters.MaximalTradeFeePercentage);
+            var sellerAssociates = _repository.GetUsersWithBalance(context.SellingPair.Amount, context.SellingPair.Symbol, _config.Limiters.MaximalTradeFeePercentage);
 
             context.BuyerAssociatedUsers = buyerAssociates;
             context.SellerAssociatedUsers = sellerAssociates;

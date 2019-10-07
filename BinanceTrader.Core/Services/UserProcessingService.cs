@@ -53,7 +53,7 @@ namespace BinanceTrader.Core.Services
             profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
 
             var lastTrade = _repository.GetTradeById(user.CurrentWallet.WalletCreatedFromTradeId);
-            if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximumAllowedTradeSyncSeconds))
+            if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximalAllowedTradeSyncSeconds))
             {
                 _logger.Information($"User with Id {user.Identifier} had last trade with Id {lastTrade.TradeId} out of sync.");
                 profit.IsFullReport = true;
