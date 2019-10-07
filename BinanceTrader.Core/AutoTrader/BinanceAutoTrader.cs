@@ -132,12 +132,6 @@ namespace BinanceTrader.Core.AutoTrader
                 }
             }
 
-            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
-            {
-                _logger.Information("Report was not targeting our currency symbol.");
-                return;
-            }
-
             var traderUser = _repo.GetUserById(e.UserId);
             if (traderUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
             {
@@ -148,8 +142,8 @@ namespace BinanceTrader.Core.AutoTrader
             if (e.Report.AverageProfitPerHour < _config.Limiters.MinimalTraderProfitPerHourPercentage ||
                 e.Report.AverageTradesPerHour > _config.Limiters.MaximalTraderTradesCountPerHour)
             {
-                _logger.Information("Limiters were not satisfied.");
-                if (AttachedUser.Identifier == e.UserId)
+                _logger.Information($"Skipping profitable user's trade due to limiters. Trader user Id was {e.UserId}");
+                if (AttachedUser?.Identifier == e.UserId)
                 {
                     DetachAttachedUser();
                 }
@@ -157,7 +151,7 @@ namespace BinanceTrader.Core.AutoTrader
                 return;
             }
 
-            if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
+            if (AttachedUser == null || AttachedUser?.Identifier == e.UserId)
             {
                 if (AttachedUser == null)
                 {

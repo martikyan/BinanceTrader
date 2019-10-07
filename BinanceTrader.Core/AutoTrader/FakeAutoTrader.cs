@@ -39,6 +39,12 @@ namespace BinanceTrader.Core.AutoTrader
                 return;
             }
 
+            var eventOwnerUser = _repo.GetUserById(e.UserId);
+            if (eventOwnerUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
+            {
+                _logger.Information($"Skipping report due to trader and our wallets currency equality.");
+            }
+
             if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
             {
                 if (AttachedUser == null)
@@ -46,7 +52,7 @@ namespace BinanceTrader.Core.AutoTrader
                     _logger.Information($"Attaching to user with Id: {e.UserId}");
                     AttachedUsersHistory.Add(e.UserId);
                     AttachedUserProfit = e.Report;
-                    AttachedUser = _repo.GetUserById(e.UserId);
+                    AttachedUser = eventOwnerUser;
                 }
 
                 _logger.Information("Attached user traded. Repeating actions.");
@@ -67,17 +73,12 @@ namespace BinanceTrader.Core.AutoTrader
             else
             {
                 var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
-                var eventOwnerUser = _repo.GetUserById(e.UserId);
 
-                if (eventOwnerUser.CurrentWallet.Symbol != CurrentWallet.Symbol)
+                if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
+                e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
                 {
-                    if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
-                    {
-                        _logger.Information("Detaching current user.");
-                        AttachedUser = null;
-                        HandleEvent(this, e);
-                    }
+                    DetachAttachedUser();
+                    HandleEvent(this, e);
                 }
             }
         }
