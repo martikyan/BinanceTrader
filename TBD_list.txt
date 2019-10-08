@@ -5,3 +5,4 @@
 5. Calculate fees for each user
 6. Remove target currency of the profit, we should track them both
 7. The event based architecture seems not to be well, try to refactor
+8. Validate AntiForgeryToken
