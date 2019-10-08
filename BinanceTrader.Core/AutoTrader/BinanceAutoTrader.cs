@@ -43,6 +43,7 @@ namespace BinanceTrader.Core.AutoTrader
                 catch (Exception e)
                 {
                     _logger.Error(e, $"An exception was thrown while handling the ProfitableUserTraded event. Trade Id and user Id were: {args?.TradeId} {args?.UserId}");
+                    throw;
                 }
             }
         };
@@ -185,7 +186,7 @@ namespace BinanceTrader.Core.AutoTrader
                     var price = priceResult.Data.Price;
                     var quantity = CurrentWallet.Symbol == _symbolPair.Symbol1 ? CurrentWallet.Amount : CurrentWallet.Amount / price;
                     quantity = RecorrectQuantity(quantity);
-                    
+
                     _logger.Warning($"Wallet balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
                     _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol} with price of {price}.");
 
