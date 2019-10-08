@@ -134,12 +134,12 @@ namespace BinanceTrader.Core.DataAccess
             return number >= low && number <= high;
         }
 
-        public void BlacklistOrderId(long orderId)
+        public void BlacklistOrder(long orderId)
         {
             _blacklistedOrdersCache.Set(orderId.ToString(), true, GetTimeoutPolicy());
         }
 
-        public bool IsOrderIdBlackListed(long orderId)
+        public bool IsOrderBlackListed(long orderId)
         {
             return _blacklistedOrdersCache[orderId.ToString()] != null;
         }

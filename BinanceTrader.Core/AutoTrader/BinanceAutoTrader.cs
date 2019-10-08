@@ -198,7 +198,7 @@ namespace BinanceTrader.Core.AutoTrader
                         side: orderSide,
                         price: price);
 
-                    _repo.BlacklistOrderId(placeOrderResult.Data.OrderId);
+                    _repo.BlacklistOrder(placeOrderResult.Data.OrderId);
 
                     _isTradingLocked = true;
                     _lastTradeDate = trade.TradeTime;
@@ -213,7 +213,8 @@ namespace BinanceTrader.Core.AutoTrader
                 maxSecondsToWait = Math.Min(maxSecondsToWait, _config.Limiters.MaximalSecondsToWaitForTheTrader);
 
                 if (DateTime.UtcNow - _lastTradeDate > TimeSpan.FromSeconds(maxSecondsToWait) ||
-                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour * Math.E)
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour * Math.E &&
+                    e.Report.AverageTradesPerHour < AttachedUserProfit.AverageTradesPerHour)
                 {
                     DetachAttachedUser();
                     HandleEvent(this, e);

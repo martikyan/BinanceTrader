@@ -45,8 +45,8 @@ namespace BinanceTrader.Core.Services
                 return context;
             }
 
-            if (_repository.IsOrderIdBlackListed(trade.SellerOrderId) ||
-                _repository.IsOrderIdBlackListed(trade.BuyerOrderId))
+            if (_repository.IsOrderBlackListed(trade.SellerOrderId) ||
+                _repository.IsOrderBlackListed(trade.BuyerOrderId))
             {
                 _logger.Verbose($"Trade with Id {trade.TradeId} was created from blacklisted order. Skipping the trade.");
             }

@@ -87,12 +87,15 @@ namespace BinanceTrader.Core.Services
 
         private bool IsProfitableUser(UserProfitReport userProfit)
         {
+            var l = _config.Limiters;
+
             return
                 userProfit.IsFullReport &&
-                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.Limiters.MinimalTraderActivityThresholdSeconds) &&
-                userProfit.WalletsCount >= _config.Limiters.MinimalTraderWalletsCount &&
-                userProfit.AverageProfitPerHour >= _config.Limiters.MinimalTraderProfitPerHourPercentage &&
-                userProfit.CurrencySymbol == _config.TargetCurrencySymbol;
+                userProfit.WalletsCount >= l.MinimalTraderWalletsCount &&
+                userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
+                userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
+                userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&
+                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
         }
     }
 }

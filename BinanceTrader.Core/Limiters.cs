@@ -10,6 +10,8 @@
 
         public double MaximalTradeFeePercentage { get; set; }
 
+        public double MinimalSuccessFailureRatio { get; set; }
+
         public int MaximalTraderTradesCountPerHour { get; set; }
 
         public double MaximalAllowedTradeSyncSeconds { get; set; }

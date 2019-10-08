@@ -73,18 +73,19 @@ namespace BinanceTrader.Core.Services
                 dateDiffList.Add(trades[i].TradeTime - trades[i - 1].TradeTime);
             }
 
-            profit.TotalTradesCount = user.WalletsHistory.Count + 1;
-            profit.AverageTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Average(diff => diff.TotalSeconds));
-            profit.MinimalTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Min(diff => diff.TotalSeconds));
-            profit.AverageTradesPerHour = CalculateTradesPerHour(profit.TotalTradesCount, profit.AverageTradeThreshold);
-            profit.StartBalance = selectedWallets.First().Balance;
-            profit.EndBalance = selectedWallets.Last().Balance;
             profit.IsFullReport = true;
+            profit.EndBalance = selectedWallets.Last().Balance;
+            profit.StartBalance = selectedWallets.First().Balance;
+            profit.TotalTradesCount = user.WalletsHistory.Count + 1;
+            profit.SuccessFailureRatio = GetSuccessFailureRate(selectedWallets);
+            profit.MinimalTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Min(diff => diff.TotalSeconds));
+            profit.AverageTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Average(diff => diff.TotalSeconds));
+            profit.AverageTradesPerHour = GetTradesPerHour(profit.TotalTradesCount, profit.AverageTradeThreshold);
 
             return profit;
         }
 
-        private static double CalculateTradesPerHour(int totalTrades, TimeSpan tradeAverageThreshold)
+        private static double GetTradesPerHour(int totalTrades, TimeSpan tradeAverageThreshold)
         {
             if (tradeAverageThreshold.TotalMilliseconds == 0.0)
             {
@@ -92,6 +93,32 @@ namespace BinanceTrader.Core.Services
             }
 
             return totalTrades * TimeSpan.FromHours(1).TotalMilliseconds / tradeAverageThreshold.TotalMilliseconds;
+        }
+
+        private static double GetSuccessFailureRate(List<Wallet> wallets)
+        {
+            var succeeded = 0;
+            var failed = 0;
+            for (int i = 1; i < wallets.Count; i++)
+            {
+                if (wallets[i].Balance > wallets[i - 1].Balance)
+                {
+                    succeeded++;
+                }
+                else
+                {
+                    failed++;
+                }
+            }
+
+            if (failed != 0)
+            {
+                return (double)succeeded / failed;
+            }
+            else
+            {
+                return succeeded * Math.E;
+            }
         }
 
         private static double CalculateProfitPerHour(IEnumerable<Wallet> wallets)
