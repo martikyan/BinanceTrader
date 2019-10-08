@@ -28,9 +28,8 @@ namespace BinanceTrader.Core.AutoTrader
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
             _symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
-            CurrentWallet = GetCurrentWallet();
+            UpdateCurrentWallet();
         }
 
         public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => (sender, args) =>
@@ -53,7 +52,7 @@ namespace BinanceTrader.Core.AutoTrader
             AttachedUser = null;
         }
 
-        private SymbolAmountPair GetCurrentWallet()
+        private void UpdateCurrentWallet()
         {
             using (var client = CreateBinanceClient())
             {
@@ -67,14 +66,22 @@ namespace BinanceTrader.Core.AutoTrader
                     .Where(b => b.Asset == _symbolPair.Symbol2)
                     .First();
 
+                SymbolAmountPair cw;
                 var s1pcb = s1b.Total * price.Data.Price;
                 if (s1pcb > s2b.Total)
                 {
-                    return SymbolAmountPair.Create(s1b.Asset, s1b.Total);
+                    cw = SymbolAmountPair.Create(s1b.Asset, s1b.Total);
                 }
                 else
                 {
-                    return SymbolAmountPair.Create(s2b.Asset, s2b.Total);
+                    cw = SymbolAmountPair.Create(s2b.Asset, s2b.Total);
+                }
+
+                if (cw.Amount != CurrentWallet.Amount ||
+                    cw.Symbol != CurrentWallet.Symbol)
+                {
+                    WalletHistory.Add(cw);
+                    CurrentWallet = cw;
                 }
             }
         }
@@ -128,7 +135,7 @@ namespace BinanceTrader.Core.AutoTrader
                 }
                 else
                 {
-                    CurrentWallet = GetCurrentWallet();
+                    UpdateCurrentWallet();
                 }
             }
 

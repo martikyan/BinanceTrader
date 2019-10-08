@@ -1,9 +1,7 @@
 1. Remove code duplications (see TradeRegistrar)
-2. Update fees
-3. Implement the real autotrader
-4. Make the application work asynchronous
-5. Blacklist auto trader's orders and check for the blacklisted order in OPS
-6. Let the tradeRegistrarService fire both UserTraded and ProfitableUserTraded events
-7. Add averageProfitPerTrade
-8. Make GetCurrentWalletAsync work well. It's total ordering is not accurate. 0.5 ETH > 1 USD, but 0.5 < 1 
-9. Fees
+2. Make the application work asynchronous
+3. Let the tradeRegistrarService fire both UserTraded and ProfitableUserTraded events
+4. Add averageProfitPerTrade
+5. Calculate fees for each user
+6. Remove target currency of the profit, we should track them both
+7. The event based architecture seems not to be well, try to refactor
