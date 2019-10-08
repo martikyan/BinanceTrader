@@ -200,11 +200,11 @@ namespace BinanceTrader.Core.AutoTrader
             }
             else
             {
-                var maxSecondsToWait = AttachedUserProfit.AverageTradeThreshold.TotalSeconds;
+                var maxSecondsToWait = AttachedUserProfit.AverageTradeThreshold.TotalSeconds * Math.E;
                 maxSecondsToWait = Math.Min(maxSecondsToWait, _config.Limiters.MaximalSecondsToWaitForTheTrader);
 
                 if (DateTime.UtcNow - _lastTradeDate > TimeSpan.FromSeconds(maxSecondsToWait) ||
-                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
+                    e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour * Math.E)
                 {
                     DetachAttachedUser();
                     HandleEvent(this, e);
