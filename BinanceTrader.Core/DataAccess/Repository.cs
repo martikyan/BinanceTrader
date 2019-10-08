@@ -70,8 +70,8 @@ namespace BinanceTrader.Core.DataAccess
                 return (int)_commonAmountCache[symbol];
             }
 
-            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(100);
-            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(100);
+            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(50);
+            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(50);
 
             var a1 = r1.Select(t => t.Quantity);
             var a2 = r2.Select(t => t.Price);

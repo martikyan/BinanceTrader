@@ -36,7 +36,14 @@ namespace BinanceTrader.Core.AutoTrader
         {
             lock (_lockObject)
             {
-                HandleEvent(sender, args);
+                try
+                {
+                    HandleEvent(sender, args);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, $"An exception was thrown while handling the ProfitableUserTraded event. Trade Id and user Id were: {args?.TradeId} {args?.UserId}");
+                }
             }
         };
 
@@ -176,15 +183,16 @@ namespace BinanceTrader.Core.AutoTrader
                     var orderSide = CurrentWallet.Symbol == _symbolPair.Symbol1 ? OrderSide.Sell : OrderSide.Buy;
                     var priceResult = client.GetPrice(_symbolPair.ToString());
                     var price = priceResult.Data.Price;
-                    var amountToTrade = CurrentWallet.Symbol == _symbolPair.Symbol1 ? CurrentWallet.Amount : CurrentWallet.Amount / price;
-
+                    var quantity = CurrentWallet.Symbol == _symbolPair.Symbol1 ? CurrentWallet.Amount : CurrentWallet.Amount / price;
+                    quantity = RecorrectQuantity(quantity);
+                    
                     _logger.Warning($"Wallet balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
                     _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol} with price of {price}.");
 
                     var placeOrderResult = client.PlaceOrder(
                         timeInForce: TimeInForce.GoodTillCancel,
                         symbol: _symbolPair.ToString(),
-                        quantity: amountToTrade,
+                        quantity: quantity,
                         type: OrderType.Limit,
                         side: orderSide,
                         price: price);
@@ -210,6 +218,16 @@ namespace BinanceTrader.Core.AutoTrader
                     HandleEvent(this, e);
                 }
             }
+        }
+
+        private decimal RecorrectQuantity(decimal amount)
+        {
+            var maxDec = _config.FirstSymbolMaxDecimals;
+            amount *= 0.999m; // Manual fee calculation.
+            amount *= (decimal)Math.Pow(10, maxDec);
+            amount = Math.Floor(amount);
+            amount *= (decimal)Math.Pow(10, -1 * maxDec);
+            return amount;
         }
     }
 }

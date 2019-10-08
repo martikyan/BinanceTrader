@@ -14,6 +14,8 @@
 
         public bool EnableAutoTrade { get; set; }
 
+        public int FirstSymbolMaxDecimals { get; set; }
+
         public int MaxTraderLockSeconds { get; set; }
 
         public Limiters Limiters { get; set; }
