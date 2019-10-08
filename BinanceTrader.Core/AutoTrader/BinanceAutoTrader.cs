@@ -30,23 +30,11 @@ namespace BinanceTrader.Core.AutoTrader
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
             UpdateCurrentWallet();
+
+            ProfitableUserTradedHandler = EventHandlerPredicate;
         }
 
-        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => (sender, args) =>
-        {
-            lock (_lockObject)
-            {
-                try
-                {
-                    HandleEvent(sender, args);
-                }
-                catch (Exception e)
-                {
-                    _logger.Error(e, $"An exception was thrown while handling the ProfitableUserTraded event. Trade Id and user Id were: {args?.TradeId} {args?.UserId}");
-                    throw;
-                }
-            }
-        };
+        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; private set; }
 
         public List<SymbolAmountPair> WalletHistory { get; private set; } = new List<SymbolAmountPair>();
         public List<string> AttachedUsersHistory { get; private set; } = new List<string>();
@@ -58,6 +46,18 @@ namespace BinanceTrader.Core.AutoTrader
         {
             _logger.Information($"Detaching user with Id {AttachedUser?.Identifier}");
             AttachedUser = null;
+        }
+
+        public void PauseTrading()
+        {
+            _logger.Information("The trading is paused.");
+            ProfitableUserTradedHandler = null;
+        }
+
+        public void ResumeTrading()
+        {
+            _logger.Information("The trading is resumed.");
+            ProfitableUserTradedHandler = EventHandlerPredicate;
         }
 
         private void UpdateCurrentWallet()
@@ -128,6 +128,22 @@ namespace BinanceTrader.Core.AutoTrader
             var options = new BinanceClientOptions() { ApiCredentials = creds };
 
             return new BinanceClient(options);
+        }
+
+        private void EventHandlerPredicate(object sender, ProfitableUserTradedEventArgs args)
+        {
+            lock (_lockObject)
+            {
+                try
+                {
+                    HandleEvent(sender, args);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, $"An exception was thrown while handling the ProfitableUserTraded event. Trade Id and user Id were: {args?.TradeId} {args?.UserId}");
+                    throw;
+                }
+            }
         }
 
         private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)

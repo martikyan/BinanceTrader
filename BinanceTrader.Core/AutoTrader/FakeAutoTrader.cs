@@ -18,7 +18,7 @@ namespace BinanceTrader.Core.AutoTrader
         public List<SymbolAmountPair> WalletHistory { get; private set; }
         public List<string> AttachedUsersHistory { get; private set; }
         public SymbolAmountPair CurrentWallet { get; private set; }
-        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => HandleEvent;
+        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; private set; }
 
         public FakeAutoTrader(CoreConfiguration config, IRepository repo, ILogger logger)
         {
@@ -29,6 +29,7 @@ namespace BinanceTrader.Core.AutoTrader
             CurrentWallet = SymbolAmountPair.Create(config.TargetCurrencySymbol, 11m);
             WalletHistory = new List<SymbolAmountPair>() { CurrentWallet };
             AttachedUsersHistory = new List<string>();
+            ProfitableUserTradedHandler = HandleEvent;
         }
 
         private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
@@ -97,7 +98,20 @@ namespace BinanceTrader.Core.AutoTrader
 
         public void DetachAttachedUser()
         {
+            _logger.Information("Detached current user.");
             AttachedUser = null;
+        }
+
+        public void PauseTrading()
+        {
+            _logger.Information("Paused trading.");
+            ProfitableUserTradedHandler = null;
+        }
+
+        public void ResumeTrading()
+        {
+            _logger.Information("Resumed trading.");
+            ProfitableUserTradedHandler = HandleEvent;
         }
     }
 }

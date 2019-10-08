@@ -6,6 +6,10 @@ namespace BinanceTrader.Core.AutoTrader
 {
     public interface IAutoTrader
     {
+        void PauseTrading();
+
+        void ResumeTrading();
+
         List<SymbolAmountPair> WalletHistory { get; }
 
         List<string> AttachedUsersHistory { get; }
