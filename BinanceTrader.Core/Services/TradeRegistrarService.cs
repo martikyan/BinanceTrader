@@ -49,6 +49,7 @@ namespace BinanceTrader.Core.Services
                 _repository.IsOrderBlackListed(trade.BuyerOrderId))
             {
                 _logger.Verbose($"Trade with Id {trade.TradeId} was created from blacklisted order. Skipping the trade.");
+                return context;
             }
 
             _logger.Verbose($"Trade with Id {trade.TradeId} was a complex trade. Registering.");
