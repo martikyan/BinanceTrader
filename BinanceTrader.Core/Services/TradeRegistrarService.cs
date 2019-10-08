@@ -45,12 +45,19 @@ namespace BinanceTrader.Core.Services
                 return context;
             }
 
+            if (_repository.IsOrderBlackListed(trade.SellerOrderId) ||
+                _repository.IsOrderBlackListed(trade.BuyerOrderId))
+            {
+                _logger.Verbose($"Trade with Id {trade.TradeId} was created from blacklisted order. Skipping the trade.");
+                return context;
+            }
+
             _logger.Verbose($"Trade with Id {trade.TradeId} was a complex trade. Registering.");
             _repository.AddOrUpdateTrade(trade);
             context.IsTradeRegistered = true;
 
-            var buyerAssociates = _repository.GetUsersWithBalance(context.BuyingPair.Amount, context.BuyingPair.Symbol, _config.Limiters.MaximumTradeFeePercentage);
-            var sellerAssociates = _repository.GetUsersWithBalance(context.SellingPair.Amount, context.SellingPair.Symbol, _config.Limiters.MaximumTradeFeePercentage);
+            var buyerAssociates = _repository.GetUsersWithBalance(context.BuyingPair.Amount, context.BuyingPair.Symbol, _config.Limiters.MaximalTradeFeePercentage);
+            var sellerAssociates = _repository.GetUsersWithBalance(context.SellingPair.Amount, context.SellingPair.Symbol, _config.Limiters.MaximalTradeFeePercentage);
 
             context.BuyerAssociatedUsers = buyerAssociates;
             context.SellerAssociatedUsers = sellerAssociates;
@@ -125,11 +132,11 @@ namespace BinanceTrader.Core.Services
         {
             var user = new BinanceUser()
             {
-                Wallets = new List<Wallet>(),
+                WalletsHistory = new List<Wallet>(),
                 Identifier = IdentificationUtilities.GetRandomIdentifier(),
             };
 
-            user.Wallets.Add(new Wallet()
+            user.WalletsHistory.Add(new Wallet()
             {
                 Symbol = symbol,
                 OwnerId = user.Identifier,
@@ -159,7 +166,7 @@ namespace BinanceTrader.Core.Services
                     WalletCreatedFromTradeId = context.Trade.TradeId,
                 };
 
-                user.Wallets.Add(newWallet);
+                user.WalletsHistory.Add(newWallet);
                 _repository.AddOrUpdateUser(user);
                 _logger.Debug($"User with Id {user.Identifier} got updated.");
                 UserTraded?.Invoke(this, UserTradedEventArgs.Create(user.Identifier, context.Trade.TradeId));

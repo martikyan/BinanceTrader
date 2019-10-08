@@ -28,12 +28,13 @@ namespace BinanceTrader.API
             var config = new CoreConfiguration();
             Configuration.GetSection(nameof(CoreConfiguration)).Bind(config);
 
-            services.AddSingleton(config);
-            services.AddSingleton(Log.Logger);
-            services.AddSingleton<UserProcessingService>();
-            services.AddSingleton<TradeRegistrarService>();
-            services.AddSingleton<TradeProcessingService>();
-            services.AddSingleton<IRepository, Repository>();
+            services
+                .AddSingleton(config)
+                .AddSingleton(Log.Logger)
+                .AddSingleton<UserProcessingService>()
+                .AddSingleton<TradeRegistrarService>()
+                .AddSingleton<TradeProcessingService>()
+                .AddSingleton<IRepository, Repository>();
 
             if (config.EnableAutoTrade)
             {
@@ -49,7 +50,9 @@ namespace BinanceTrader.API
             {
                 c.SwaggerDoc("v1", new Info { Title = Assembly.GetExecutingAssembly().FullName, Version = "v1" });
             });
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services
+                .AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

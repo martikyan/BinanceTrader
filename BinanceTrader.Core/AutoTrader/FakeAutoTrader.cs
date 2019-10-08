@@ -18,7 +18,7 @@ namespace BinanceTrader.Core.AutoTrader
         public List<SymbolAmountPair> WalletHistory { get; private set; }
         public List<string> AttachedUsersHistory { get; private set; }
         public SymbolAmountPair CurrentWallet { get; private set; }
-        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler => HandleEvent;
+        public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; private set; }
 
         public FakeAutoTrader(CoreConfiguration config, IRepository repo, ILogger logger)
         {
@@ -29,14 +29,21 @@ namespace BinanceTrader.Core.AutoTrader
             CurrentWallet = SymbolAmountPair.Create(config.TargetCurrencySymbol, 11m);
             WalletHistory = new List<SymbolAmountPair>() { CurrentWallet };
             AttachedUsersHistory = new List<string>();
+            ProfitableUserTradedHandler = HandleEvent;
         }
 
-        protected void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
+        private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
             if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
             {
                 _logger.Information("Report was not targeting our currency symbol.");
                 return;
+            }
+
+            var eventOwnerUser = _repo.GetUserById(e.UserId);
+            if (eventOwnerUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
+            {
+                _logger.Information($"Skipping report due to trader and our wallets currency equality.");
             }
 
             if (AttachedUser == null || AttachedUser.Identifier == e.UserId)
@@ -46,7 +53,7 @@ namespace BinanceTrader.Core.AutoTrader
                     _logger.Information($"Attaching to user with Id: {e.UserId}");
                     AttachedUsersHistory.Add(e.UserId);
                     AttachedUserProfit = e.Report;
-                    AttachedUser = _repo.GetUserById(e.UserId);
+                    AttachedUser = eventOwnerUser;
                 }
 
                 _logger.Information("Attached user traded. Repeating actions.");
@@ -67,11 +74,11 @@ namespace BinanceTrader.Core.AutoTrader
             else
             {
                 var maxTimeToWaitForAttachedUser = TimeSpan.FromTicks(AttachedUserProfit.AverageTradeThreshold.Ticks * 2);
+
                 if (DateTime.UtcNow - _lastTradeDate > maxTimeToWaitForAttachedUser ||
-                    e.Report.ProfitPerHour > AttachedUserProfit.ProfitPerHour)
+                e.Report.AverageProfitPerHour > AttachedUserProfit.AverageProfitPerHour)
                 {
-                    _logger.Information("Detaching current user.");
-                    AttachedUser = null;
+                    DetachAttachedUser();
                     HandleEvent(this, e);
                 }
             }
@@ -81,17 +88,30 @@ namespace BinanceTrader.Core.AutoTrader
         {
             if (initial.Symbol == _config.FirstSymbol)
             {
-                return SymbolAmountPair.Create(_config.SecondSymbol, price * initial.Amount);
+                return SymbolAmountPair.Create(_config.SecondSymbol, price * initial.Amount * 0.999m);
             }
             else
             {
-                return SymbolAmountPair.Create(_config.FirstSymbol, initial.Amount / price);
+                return SymbolAmountPair.Create(_config.FirstSymbol, initial.Amount / price * 0.999m);
             }
         }
 
         public void DetachAttachedUser()
         {
+            _logger.Information("Detached current user.");
             AttachedUser = null;
+        }
+
+        public void PauseTrading()
+        {
+            _logger.Information("Paused trading.");
+            ProfitableUserTradedHandler = null;
+        }
+
+        public void ResumeTrading()
+        {
+            _logger.Information("Resumed trading.");
+            ProfitableUserTradedHandler = HandleEvent;
         }
     }
 }

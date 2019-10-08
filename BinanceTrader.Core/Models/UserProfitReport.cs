@@ -6,13 +6,13 @@ namespace BinanceTrader.Core.Models
     {
         public string CurrencySymbol { get; set; }
 
-        public double ProfitPerHour { get; set; }
+        public double AverageProfitPerHour { get; set; }
+
+        public double AverageTradesPerHour { get; set; }
 
         public int WalletsCount { get; set; }
 
-        public int SucceededTradesCount { get; set; }
-
-        public int FailedTradesCount { get; set; }
+        public int TotalTradesCount { get; set; }
 
         public double SuccessFailureRatio { get; set; }
 

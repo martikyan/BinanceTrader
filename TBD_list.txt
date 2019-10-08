@@ -1,4 +1,8 @@
 1. Remove code duplications (see TradeRegistrar)
-2. Update fees
-3. Implement the real autotrader
-4. Make the application work asynchronous
+2. Make the application work asynchronous
+3. Let the tradeRegistrarService fire both UserTraded and ProfitableUserTraded events
+4. Add averageProfitPerTrade
+5. Calculate fees for each user
+6. Remove target currency of the profit, we should track them both
+7. The event based architecture seems not to be well, try to refactor
+8. Validate AntiForgeryToken

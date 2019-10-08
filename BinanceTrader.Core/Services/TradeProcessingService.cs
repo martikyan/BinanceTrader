@@ -42,7 +42,7 @@ namespace BinanceTrader.Core.Services
                 throw new InvalidOperationException($"{nameof(TradeProcessingService)} was already started processing live trades.");
             }
             _logger.Debug("Starting processing live trades.");
-            var symbolPair = new SymbolPair(_config.FirstSymbol, _config.SecondSymbol);
+            var symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
 
             _isStarted = true;
             _tradeRegistrar.UserTraded += OnUserTraded;
@@ -50,11 +50,10 @@ namespace BinanceTrader.Core.Services
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
             {
                 var ping = (DateTime.UtcNow - trade.TradeTime).TotalSeconds;
-                if (ping > _config.Limiters.MaximumAllowedTradeSyncSeconds / 2 ||
-                    ping < _config.Limiters.MaximumAllowedTradeSyncSeconds / -2)
+                if (ping > _config.Limiters.MaximalAllowedTradeSyncSeconds / 2 ||
+                    ping < _config.Limiters.MaximalAllowedTradeSyncSeconds / -2)
                 {
-                    _logger.Error($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximumAllowedTradeSyncSeconds)}");
-                    Environment.Exit(1);
+                    _logger.Warning($"Detected trade sync time downgrade with ping {ping} seconds. Try synchronizing machine time or checking the config value with name: {nameof(_config.Limiters.MaximalAllowedTradeSyncSeconds)}");
                 }
 
                 if (trade.Quantity <= _config.Limiters.MinimalTradeQuantity)
@@ -88,13 +87,15 @@ namespace BinanceTrader.Core.Services
 
         private bool IsProfitableUser(UserProfitReport userProfit)
         {
+            var l = _config.Limiters;
+
             return
                 userProfit.IsFullReport &&
-                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(_config.Limiters.MinimalTraderActivityThresholdSeconds) &&
-                userProfit.WalletsCount >= _config.Limiters.MinimalTraderWalletsCount &&
-                userProfit.ProfitPerHour >= _config.Limiters.MinimalTraderProfitPerHourPercentage &&
-                userProfit.SuccessFailureRatio >= _config.Limiters.MinimalSuccessFailureRatio &&
-                userProfit.CurrencySymbol == _config.TargetCurrencySymbol;
+                userProfit.WalletsCount >= l.MinimalTraderWalletsCount &&
+                userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
+                userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
+                userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&
+                userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
         }
     }
 }

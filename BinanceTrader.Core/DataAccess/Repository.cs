@@ -11,6 +11,7 @@ namespace BinanceTrader.Core.DataAccess
         private readonly MemoryCache _usersCache;
         private readonly MemoryCache _tradesCache;
         private readonly MemoryCache _commonAmountCache;
+        private readonly MemoryCache _blacklistedOrdersCache;
         private readonly CoreConfiguration _config;
 
         public Repository(CoreConfiguration config)
@@ -19,6 +20,7 @@ namespace BinanceTrader.Core.DataAccess
             _tradesCache = new MemoryCache(nameof(_tradesCache));
             _usersCache = new MemoryCache(nameof(_usersCache));
             _commonAmountCache = new MemoryCache(nameof(_commonAmountCache));
+            _blacklistedOrdersCache = new MemoryCache(nameof(_blacklistedOrdersCache));
         }
 
         public void AddOrUpdateTrade(Trade trade)
@@ -68,8 +70,8 @@ namespace BinanceTrader.Core.DataAccess
                 return (int)_commonAmountCache[symbol];
             }
 
-            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(100);
-            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(100);
+            var r1 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol1 == symbol).Take(50);
+            var r2 = _tradesCache.Select(t => t.Value).Cast<Trade>().Where(t => t.SymbolPair.Symbol2 == symbol).Take(50);
 
             var a1 = r1.Select(t => t.Quantity);
             var a2 = r2.Select(t => t.Price);
@@ -130,6 +132,16 @@ namespace BinanceTrader.Core.DataAccess
         private bool IsInRange(decimal number, decimal low, decimal high)
         {
             return number >= low && number <= high;
+        }
+
+        public void BlacklistOrder(long orderId)
+        {
+            _blacklistedOrdersCache.Set(orderId.ToString(), true, GetTimeoutPolicy());
+        }
+
+        public bool IsOrderBlackListed(long orderId)
+        {
+            return _blacklistedOrdersCache[orderId.ToString()] != null;
         }
     }
 }
