@@ -10,8 +10,6 @@ namespace BinanceTrader.Core.Models
 
         public double AverageTradesPerHour { get; set; }
 
-        public int WalletsCount { get; set; }
-
         public int TotalTradesCount { get; set; }
 
         public double SuccessFailureRatio { get; set; }

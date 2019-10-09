@@ -101,7 +101,7 @@ namespace BinanceTrader.Core.Services
             var users = context.BuyerAssociatedUsers;
             if (users.Count == 0)
             {
-                context = RegisterNewUser(context, context.BuyingPair.Symbol, context.BuyingPair.Amount);
+                context = RegisterNewUser(context, isBuyer: true);
             }
             else
             {
@@ -117,7 +117,7 @@ namespace BinanceTrader.Core.Services
             var users = context.SellerAssociatedUsers;
             if (users.Count == 0)
             {
-                RegisterNewUser(context, context.SellingPair.Symbol, context.SellingPair.Amount);
+                RegisterNewUser(context, isBuyer: false);
             }
             else
             {
@@ -128,7 +128,7 @@ namespace BinanceTrader.Core.Services
             return context;
         }
 
-        private TradeRegistrationContext RegisterNewUser(TradeRegistrationContext context, string symbol, decimal balance)
+        private TradeRegistrationContext RegisterNewUser(TradeRegistrationContext context, bool isBuyer)
         {
             var user = new BinanceUser()
             {
@@ -136,14 +136,21 @@ namespace BinanceTrader.Core.Services
                 Identifier = IdentificationUtilities.GetRandomIdentifier(),
             };
 
-            user.WalletsHistory.Add(new Wallet()
+            var pair = isBuyer ? context.SellingPair : context.BuyingPair;
+            var firstWallet = new Wallet()
             {
-                Symbol = symbol,
+                Symbol = pair.Symbol,
                 OwnerId = user.Identifier,
-                Balance = balance,
-                WalletCreationDate = context.Trade.TradeTime,
+                Balance = pair.Amount,
                 WalletCreatedFromTradeId = context.Trade.TradeId,
-            });
+            };
+
+            user.WalletsHistory.Add(firstWallet);
+            var secondWallet = firstWallet.Clone();
+            pair = isBuyer ? context.BuyingPair : context.SellingPair;
+            secondWallet.Symbol = pair.Symbol;
+            secondWallet.Balance = pair.Amount;
+            user.WalletsHistory.Add(secondWallet);
 
             _repository.AddOrUpdateUser(user);
             _logger.Debug($"Registered a new user with Id: {user.Identifier}");
@@ -162,7 +169,6 @@ namespace BinanceTrader.Core.Services
                     OwnerId = user.Identifier,
                     Symbol = pair.Symbol,
                     Balance = pair.Amount,
-                    WalletCreationDate = context.Trade.TradeTime,
                     WalletCreatedFromTradeId = context.Trade.TradeId,
                 };
 
