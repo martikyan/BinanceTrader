@@ -32,12 +32,9 @@ namespace BinanceTrader.Core.Services
         public UserProfitReport GetUserProfit(BinanceUser user)
         {
             _logger.Verbose($"Starting profit calculation for user with Id: {user.Identifier}");
-            var profit = new UserProfitReport()
-            {
-                WalletsCount = user.WalletsHistory.Count,
-            };
-
             var trades = new List<Trade>();
+            var profit = new UserProfitReport();
+
             Debug.Assert(user.WalletsHistory[1].WalletCreatedFromTradeId == user.WalletsHistory[0].WalletCreatedFromTradeId);
             foreach (var tradeId in user.WalletsHistory.Select(w => w.WalletCreatedFromTradeId).Skip(1)) // First two wallets are created from the same trade.
             {

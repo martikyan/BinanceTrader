@@ -171,7 +171,7 @@ namespace BinanceTrader.Core.AutoTrader
             }
 
             if (e.Report.AverageProfitPerHour < _config.Limiters.MinimalTraderProfitPerHourPercentage ||
-                e.Report.AverageTradesPerHour > _config.Limiters.MaximalTraderTradesCountPerHour)
+                e.Report.AverageTradesPerHour > _config.Limiters.MaximalTraderTradesPerHour)
             {
                 _logger.Information($"Skipping profitable user's trade due to limiters. Trader user Id was {e.UserId}");
                 if (AttachedUser?.Identifier == e.UserId)

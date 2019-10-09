@@ -6,13 +6,13 @@
 
         public decimal MinimalTradeQuantity { get; set; }
 
-        public int MinimalTraderWalletsCount { get; set; }
+        public int MinimalTraderTradesCount { get; set; }
 
         public double MaximalTradeFeePercentage { get; set; }
 
         public double MinimalSuccessFailureRatio { get; set; }
 
-        public int MaximalTraderTradesCountPerHour { get; set; }
+        public int MaximalTraderTradesPerHour { get; set; }
 
         public double MaximalAllowedTradeSyncSeconds { get; set; }
 
