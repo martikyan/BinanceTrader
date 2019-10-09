@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
@@ -37,7 +38,8 @@ namespace BinanceTrader.Core.Services
             };
 
             var trades = new List<Trade>();
-            foreach (var tradeId in user.WalletsHistory.Select(w => w.WalletCreatedFromTradeId))
+            Debug.Assert(user.WalletsHistory[1].WalletCreatedFromTradeId == user.WalletsHistory[0].WalletCreatedFromTradeId);
+            foreach (var tradeId in user.WalletsHistory.Select(w => w.WalletCreatedFromTradeId).Skip(1)) // First two wallets are created from the same trade.
             {
                 var trade = _repository.GetTradeById(tradeId);
                 trades.Add(trade);
@@ -56,14 +58,14 @@ namespace BinanceTrader.Core.Services
             if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximalAllowedTradeSyncSeconds))
             {
                 _logger.Information($"User with Id {user.Identifier} had last trade with Id {lastTrade.TradeId} out of sync.");
-                profit.IsFullReport = true;
+                profit.IsFullReport = false;
                 return profit;
             }
 
-            if (selectedWallets.Count < 2 || profit.AverageProfitPerHour == default)
+            if (selectedWallets.Count < 3 || profit.AverageProfitPerHour == default)
             {
                 _logger.Verbose($"User with Id {user.Identifier} had small amount of information. Aborting report calculation.");
-                profit.IsFullReport = true;
+                profit.IsFullReport = false;
                 return profit;
             }
 
@@ -76,7 +78,7 @@ namespace BinanceTrader.Core.Services
             profit.IsFullReport = true;
             profit.EndBalance = selectedWallets.Last().Balance;
             profit.StartBalance = selectedWallets.First().Balance;
-            profit.TotalTradesCount = user.WalletsHistory.Count + 1;
+            profit.TotalTradesCount = user.WalletsHistory.Count - 1;
             profit.SuccessFailureRatio = GetSuccessFailureRate(selectedWallets);
             profit.MinimalTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Min(diff => diff.TotalSeconds));
             profit.AverageTradeThreshold = TimeSpan.FromSeconds(dateDiffList.Average(diff => diff.TotalSeconds));
@@ -101,6 +103,7 @@ namespace BinanceTrader.Core.Services
             var failed = 0;
             for (int i = 1; i < wallets.Count; i++)
             {
+                Debug.Assert(wallets[i].Symbol == wallets[i - 1].Symbol);
                 if (wallets[i].Balance > wallets[i - 1].Balance)
                 {
                     succeeded++;

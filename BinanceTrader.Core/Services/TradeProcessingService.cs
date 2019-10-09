@@ -41,11 +41,11 @@ namespace BinanceTrader.Core.Services
             {
                 throw new InvalidOperationException($"{nameof(TradeProcessingService)} was already started processing live trades.");
             }
-            _logger.Debug("Starting processing live trades.");
-            var symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
 
             _isStarted = true;
+            _logger.Debug("Starting processing live trades.");
             _tradeRegistrar.UserTraded += OnUserTraded;
+            var symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
 
             _client.SubscribeToTradesStream(symbolPair.ToString(), trade =>
             {
@@ -94,6 +94,7 @@ namespace BinanceTrader.Core.Services
                 userProfit.WalletsCount >= l.MinimalTraderWalletsCount &&
                 userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
                 userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
+                userProfit.AverageTradesPerHour <= l.MaximalTraderTradesCountPerHour &&
                 userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
         }
