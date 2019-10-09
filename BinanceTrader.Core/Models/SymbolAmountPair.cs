@@ -1,6 +1,8 @@
-﻿namespace BinanceTrader.Core.Models
+﻿using System;
+
+namespace BinanceTrader.Core.Models
 {
-    public struct SymbolAmountPair
+    public struct SymbolAmountPair : IEquatable<SymbolAmountPair>
     {
         public string Symbol { get; set; }
         public decimal Amount { get; set; }
@@ -22,6 +24,33 @@
                 Symbol = symbol,
                 Amount = amount,
             };
+        }
+
+        public override bool Equals(object obj)
+        {
+            return (obj is SymbolAmountPair pair) && Equals(pair);
+        }
+
+        public override int GetHashCode()
+        {
+            return Symbol.GetHashCode() ^ Amount.GetHashCode() ^ -50;
+        }
+
+        public bool Equals(SymbolAmountPair other)
+        {
+            return
+                other.Amount == Amount &&
+                other.Symbol == Symbol;
+        }
+
+        public static bool operator ==(SymbolAmountPair left, SymbolAmountPair right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(SymbolAmountPair left, SymbolAmountPair right)
+        {
+            return !(left == right);
         }
     }
 }

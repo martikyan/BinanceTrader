@@ -36,11 +36,11 @@ namespace BinanceTrader.Core.AutoTrader
 
         public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; private set; }
 
-        public List<SymbolAmountPair> WalletHistory { get; private set; } = new List<SymbolAmountPair>();
-        public List<string> AttachedUsersHistory { get; private set; } = new List<string>();
+        public List<SymbolAmountPair> Wallets { get; } = new List<SymbolAmountPair>();
+        public List<string> AttachedUsersHistory { get; } = new List<string>();
         public BinanceUser AttachedUser { get; private set; }
         public UserProfitReport AttachedUserProfit { get; private set; }
-        public SymbolAmountPair CurrentWallet { get; private set; }
+        public SymbolAmountPair CurrentWallet => Wallets.LastOrDefault();
 
         public void DetachAttachedUser()
         {
@@ -60,7 +60,7 @@ namespace BinanceTrader.Core.AutoTrader
             ProfitableUserTradedHandler = EventHandlerPredicate;
         }
 
-        private void UpdateCurrentWallet()
+        public void UpdateCurrentWallet()
         {
             using (var client = CreateBinanceClient())
             {
@@ -85,16 +85,14 @@ namespace BinanceTrader.Core.AutoTrader
                     cw = SymbolAmountPair.Create(s2b.Asset, s2b.Total);
                 }
 
-                if (cw.Amount != CurrentWallet.Amount ||
-                    cw.Symbol != CurrentWallet.Symbol)
+                if (cw != CurrentWallet)
                 {
-                    WalletHistory.Add(cw);
-                    CurrentWallet = cw;
+                    Wallets.Add(cw);
                 }
             }
         }
 
-        private void UpdateLockedState()
+        public void UpdateLockedState()
         {
             if (!_isTradingLocked)
             {

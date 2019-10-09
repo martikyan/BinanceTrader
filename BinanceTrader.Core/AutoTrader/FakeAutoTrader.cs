@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
 using Serilog;
@@ -15,9 +16,9 @@ namespace BinanceTrader.Core.AutoTrader
 
         public BinanceUser AttachedUser { get; private set; }
         public UserProfitReport AttachedUserProfit { get; private set; }
-        public List<SymbolAmountPair> WalletHistory { get; private set; }
-        public List<string> AttachedUsersHistory { get; private set; }
-        public SymbolAmountPair CurrentWallet { get; private set; }
+        public List<SymbolAmountPair> Wallets { get; } = new List<SymbolAmountPair>();
+        public List<string> AttachedUsersHistory { get; } = new List<string>();
+        public SymbolAmountPair CurrentWallet => Wallets.LastOrDefault();
         public EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; private set; }
 
         public FakeAutoTrader(CoreConfiguration config, IRepository repo, ILogger logger)
@@ -26,9 +27,7 @@ namespace BinanceTrader.Core.AutoTrader
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            CurrentWallet = SymbolAmountPair.Create(config.TargetCurrencySymbol, 11m);
-            WalletHistory = new List<SymbolAmountPair>() { CurrentWallet };
-            AttachedUsersHistory = new List<string>();
+            UpdateCurrentWallet();
             ProfitableUserTradedHandler = HandleEvent;
         }
 
@@ -67,8 +66,8 @@ namespace BinanceTrader.Core.AutoTrader
 
                 _logger.Warning($"Wallet balance was {CurrentWallet.Amount}{CurrentWallet.Symbol}");
                 _logger.Warning($"Selling {CurrentWallet.Amount}{CurrentWallet.Symbol} and buying {AttachedUser.CurrentWallet.Symbol}");
-                CurrentWallet = CalculateWalletBalanceAfterTrade(CurrentWallet, trade.Price);
-                WalletHistory.Add(CurrentWallet);
+                var newWallet = CalculateWalletBalanceAfterTrade(CurrentWallet, trade.Price);
+                Wallets.Add(newWallet);
                 _logger.Warning($"After selling balance is {CurrentWallet.Amount}{CurrentWallet.Symbol}");
             }
             else
@@ -113,5 +112,17 @@ namespace BinanceTrader.Core.AutoTrader
             _logger.Information("Resumed trading.");
             ProfitableUserTradedHandler = HandleEvent;
         }
+
+        public void UpdateCurrentWallet()
+        {
+            var nw = SymbolAmountPair.Create("USDT", 100m);
+            if (nw != CurrentWallet)
+            {
+                Wallets.Add(nw);
+            }
+        }
+
+        public void UpdateLockedState()
+        { }
     }
 }

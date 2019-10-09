@@ -10,18 +10,17 @@ namespace BinanceTrader.Core.AutoTrader
 
         void ResumeTrading();
 
-        List<SymbolAmountPair> WalletHistory { get; }
-
-        List<string> AttachedUsersHistory { get; }
-
-        SymbolAmountPair CurrentWallet { get; }
-
-        BinanceUser AttachedUser { get; }
-
-        UserProfitReport AttachedUserProfit { get; }
-
-        EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; }
+        void UpdateLockedState();
 
         void DetachAttachedUser();
+
+        void UpdateCurrentWallet();
+
+        BinanceUser AttachedUser { get; }
+        SymbolAmountPair CurrentWallet { get; }
+        List<string> AttachedUsersHistory { get; }
+        UserProfitReport AttachedUserProfit { get; }
+        List<SymbolAmountPair> Wallets { get; }
+        EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTradedHandler { get; }
     }
 }

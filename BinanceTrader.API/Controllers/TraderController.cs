@@ -34,9 +34,9 @@ namespace BinanceTrader.API.Controllers
         }
 
         [HttpGet]
-        public ObjectResult GetWalletHistory()
+        public ObjectResult GetWallets()
         {
-            return Ok(_autoTrader.WalletHistory);
+            return Ok(_autoTrader.Wallets);
         }
 
         [HttpGet]
@@ -63,6 +63,20 @@ namespace BinanceTrader.API.Controllers
         public IActionResult ResumeTrading()
         {
             _autoTrader.ResumeTrading();
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateLockedState()
+        {
+            _autoTrader.UpdateLockedState();
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateCurrentWallet()
+        {
+            _autoTrader.UpdateCurrentWallet();
             return Ok();
         }
     }
