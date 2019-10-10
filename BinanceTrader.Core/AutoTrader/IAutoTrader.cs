@@ -10,8 +10,6 @@ namespace BinanceTrader.Core.AutoTrader
 
         void ResumeTrading();
 
-        void UpdateLockedState();
-
         void DetachAttachedUser();
 
         void UpdateCurrentWallet();

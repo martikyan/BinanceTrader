@@ -67,13 +67,6 @@ namespace BinanceTrader.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateLockedState()
-        {
-            _autoTrader.UpdateLockedState();
-            return Ok();
-        }
-
-        [HttpPost]
         public IActionResult UpdateCurrentWallet()
         {
             _autoTrader.UpdateCurrentWallet();

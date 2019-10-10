@@ -121,8 +121,5 @@ namespace BinanceTrader.Core.AutoTrader
                 Wallets.Add(nw);
             }
         }
-
-        public void UpdateLockedState()
-        { }
     }
 }

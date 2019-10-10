@@ -92,7 +92,7 @@ namespace BinanceTrader.Core.AutoTrader
             }
         }
 
-        public void UpdateLockedState()
+        private void UpdateLockedState()
         {
             if (!_isTradingLocked)
             {
