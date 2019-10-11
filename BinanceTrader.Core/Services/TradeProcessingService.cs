@@ -95,16 +95,15 @@ namespace BinanceTrader.Core.Services
 
         private bool IsProfitableUser(UserProfitReport userProfit, out BadUserProfitReport badProfit)
         {
-            badProfit = null;
             var l = _config.Limiters;
             var result = userProfit.IsFullReport &&
                 userProfit.TotalTradesCount >= l.MinimalTraderTradesCount &&
-                userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
                 userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
                 userProfit.AverageTradesPerHour <= l.MaximalTraderTradesPerHour &&
                 userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
 
+            badProfit = null;
             if (result == false)
             {
                 var reasonList = new List<string>();
@@ -118,11 +117,6 @@ namespace BinanceTrader.Core.Services
                 if (userProfit.TotalTradesCount < l.MinimalTraderTradesCount)
                 {
                     reasonList.Add(nameof(userProfit.TotalTradesCount));
-                }
-
-                if (userProfit.CurrencySymbol != _config.TargetCurrencySymbol)
-                {
-                    reasonList.Add(nameof(userProfit.CurrencySymbol));
                 }
 
                 if (userProfit.SuccessFailureRatio < l.MinimalSuccessFailureRatio)

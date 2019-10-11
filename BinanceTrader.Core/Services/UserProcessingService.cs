@@ -52,7 +52,6 @@ namespace BinanceTrader.Core.Services
 
             var selectedWallets = profit1 > profit2 ? walletsForCurrency1.ToList() : walletsForCurrency2.ToList();
             profit.AverageProfitPerHour = profit1 > profit2 ? profit1 : profit2;
-            profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
 
             var lastTrade = _repository.GetTradeById(user.CurrentWallet.WalletCreatedFromTradeId);
             if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximalAllowedTradeSyncSeconds))

@@ -4,29 +4,28 @@ namespace BinanceTrader.Core.Models
 {
     public class BadUserProfitReport : UserProfitReport
     {
-        public List<string> Reasons { get; private set; }
         private BadUserProfitReport()
         { }
+
+        public List<string> Reasons { get; private set; }
 
         public static BadUserProfitReport Create(UserProfitReport profit, List<string> reasons)
         {
             var result = new BadUserProfitReport()
             {
-                AverageProfitPerHour = profit.AverageProfitPerHour,
-                AverageTradesPerHour = profit.AverageTradesPerHour,
-                AverageTradeThreshold = profit.AverageTradeThreshold,
-                CurrencySymbol = profit.CurrencySymbol,
-                EndBalance = profit.EndBalance,
-                IsFullReport = profit.IsFullReport,
-                MinimalTradeThreshold = profit.MinimalTradeThreshold,
-                StartBalance = profit.StartBalance,
-                SuccessFailureRatio = profit.SuccessFailureRatio,
-                TotalTradesCount = profit.TotalTradesCount,
                 UserId = profit.UserId,
+                EndBalance = profit.EndBalance,
+                StartBalance = profit.StartBalance,
+                IsFullReport = profit.IsFullReport,
+                TotalTradesCount = profit.TotalTradesCount,
+                SuccessFailureRatio = profit.SuccessFailureRatio,
+                AverageTradesPerHour = profit.AverageTradesPerHour,
+                AverageProfitPerHour = profit.AverageProfitPerHour,
+                AverageTradeThreshold = profit.AverageTradeThreshold,
+                MinimalTradeThreshold = profit.MinimalTradeThreshold,
             };
 
             result.Reasons = reasons;
-
             return result;
         }
     }
