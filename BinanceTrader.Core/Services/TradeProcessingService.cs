@@ -104,15 +104,10 @@ namespace BinanceTrader.Core.Services
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
 
             badProfit = null;
-            if (result == false)
+            if (result == false && userProfit.IsFullReport)
             {
                 var reasonList = new List<string>();
                 badProfit = BadUserProfitReport.Create(userProfit, reasonList);
-
-                if (!userProfit.IsFullReport)
-                {
-                    reasonList.Add(nameof(userProfit.IsFullReport));
-                }
 
                 if (userProfit.TotalTradesCount < l.MinimalTraderTradesCount)
                 {
