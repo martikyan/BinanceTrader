@@ -33,7 +33,10 @@ namespace BinanceTrader.Core.Services
         {
             _logger.Verbose($"Starting profit calculation for user with Id: {user.Identifier}");
             var trades = new List<Trade>();
-            var profit = new UserProfitReport();
+            var profit = new UserProfitReport()
+            {
+                UserId = user.Identifier,
+            };
 
             Debug.Assert(user.WalletsHistory[1].WalletCreatedFromTradeId == user.WalletsHistory[0].WalletCreatedFromTradeId);
             foreach (var tradeId in user.WalletsHistory.Select(w => w.WalletCreatedFromTradeId).Skip(1)) // First two wallets are created from the same trade.

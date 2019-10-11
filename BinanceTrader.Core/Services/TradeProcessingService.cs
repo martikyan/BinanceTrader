@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Binance.Net;
 using Binance.Net.Objects;
+using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Extensions;
 using BinanceTrader.Core.Models;
 using CryptoExchange.Net.Authentication;
@@ -14,16 +16,18 @@ namespace BinanceTrader.Core.Services
         private readonly BinanceSocketClient _client;
         private readonly TradeRegistrarService _tradeRegistrar;
         private readonly UserProcessingService _ups;
+        private readonly IRepository _repo;
         private readonly ILogger _logger;
         private bool _isStarted;
 
         public event EventHandler<ProfitableUserTradedEventArgs> ProfitableUserTraded;
 
-        public TradeProcessingService(CoreConfiguration config, TradeRegistrarService tradeRegistrar, UserProcessingService ups, ILogger logger)
+        public TradeProcessingService(CoreConfiguration config, TradeRegistrarService tradeRegistrar, UserProcessingService ups, IRepository repo, ILogger logger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _tradeRegistrar = tradeRegistrar ?? throw new ArgumentNullException(nameof(tradeRegistrar));
             _ups = ups ?? throw new ArgumentNullException(nameof(ups));
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var clientOptions = new BinanceSocketClientOptions()
@@ -71,7 +75,7 @@ namespace BinanceTrader.Core.Services
             _logger.Verbose($"The user with Id {e.UserId} seems to be trading.");
             var userProfit = _ups.GetUserProfit(e.UserId);
 
-            if (IsProfitableUser(userProfit))
+            if (IsProfitableUser(userProfit, out BadUserProfitReport badProfit))
             {
                 _logger.Information($"The user with Id {e.UserId} seems to be profitable.");
                 var eventArgs = new ProfitableUserTradedEventArgs()
@@ -83,20 +87,66 @@ namespace BinanceTrader.Core.Services
 
                 ProfitableUserTraded?.Invoke(this, eventArgs);
             }
+            else
+            {
+                _repo.AddOrUpdateBadUserProfitReport(badProfit);
+            }
         }
 
-        private bool IsProfitableUser(UserProfitReport userProfit)
+        private bool IsProfitableUser(UserProfitReport userProfit, out BadUserProfitReport badProfit)
         {
+            badProfit = null;
             var l = _config.Limiters;
-
-            return
-                userProfit.IsFullReport &&
+            var result = userProfit.IsFullReport &&
                 userProfit.TotalTradesCount >= l.MinimalTraderTradesCount &&
                 userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
                 userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
                 userProfit.AverageTradesPerHour <= l.MaximalTraderTradesPerHour &&
                 userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&
                 userProfit.MinimalTradeThreshold >= TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds);
+
+            if (result == false)
+            {
+                var reasonList = new List<string>();
+                badProfit = BadUserProfitReport.Create(userProfit, reasonList);
+
+                if (!userProfit.IsFullReport)
+                {
+                    reasonList.Add(nameof(userProfit.IsFullReport));
+                }
+
+                if (userProfit.TotalTradesCount < l.MinimalTraderTradesCount)
+                {
+                    reasonList.Add(nameof(userProfit.TotalTradesCount));
+                }
+
+                if (userProfit.CurrencySymbol != _config.TargetCurrencySymbol)
+                {
+                    reasonList.Add(nameof(userProfit.CurrencySymbol));
+                }
+
+                if (userProfit.SuccessFailureRatio < l.MinimalSuccessFailureRatio)
+                {
+                    reasonList.Add(nameof(userProfit.SuccessFailureRatio));
+                }
+
+                if (userProfit.AverageTradesPerHour > l.MaximalTraderTradesPerHour)
+                {
+                    reasonList.Add(nameof(userProfit.AverageTradesPerHour));
+                }
+
+                if (userProfit.AverageProfitPerHour < l.MinimalTraderProfitPerHourPercentage)
+                {
+                    reasonList.Add(nameof(userProfit.AverageProfitPerHour));
+                }
+
+                if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds))
+                {
+                    reasonList.Add(nameof(userProfit.MinimalTradeThreshold));
+                }
+            }
+
+            return result;
         }
     }
 }

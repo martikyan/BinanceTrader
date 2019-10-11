@@ -4,6 +4,8 @@ namespace BinanceTrader.Core.Models
 {
     public class UserProfitReport
     {
+        public string UserId { get; set; }
+
         public string CurrencySymbol { get; set; }
 
         public double AverageProfitPerHour { get; set; }

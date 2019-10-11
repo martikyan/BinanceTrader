@@ -5,6 +5,12 @@ namespace BinanceTrader.Core.DataAccess
 {
     public interface IRepository
     {
+        void FlushBadUserProfitReports();
+
+        void AddOrUpdateBadUserProfitReport(BadUserProfitReport profit);
+
+        object GetTopBadUserProfitReportReasons();
+
         void BlacklistOrder(long orderId);
 
         bool IsOrderBlackListed(long orderId);

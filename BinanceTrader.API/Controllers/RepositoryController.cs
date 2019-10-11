@@ -49,5 +49,18 @@ namespace BinanceTrader.API.Controllers
 
             return Ok(trade);
         }
+
+        [HttpGet]
+        public ObjectResult GetTopBadUserProfitReportReasons()
+        {
+            return Ok(_repository.GetTopBadUserProfitReportReasons());
+        }
+
+        [HttpPost]
+        public IActionResult FlushBadUserProfitReasons()
+        {
+            _repository.FlushBadUserProfitReports();
+            return Ok();
+        }
     }
 }

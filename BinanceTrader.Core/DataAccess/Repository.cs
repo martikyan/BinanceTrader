@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using System.Threading;
 using BinanceTrader.Core.Models;
 
 namespace BinanceTrader.Core.DataAccess
@@ -14,6 +15,8 @@ namespace BinanceTrader.Core.DataAccess
         private readonly MemoryCache _blacklistedOrdersCache;
         private readonly CoreConfiguration _config;
 
+        private MemoryCache _badUserProfitReportsCache;
+
         public Repository(CoreConfiguration config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -21,6 +24,7 @@ namespace BinanceTrader.Core.DataAccess
             _usersCache = new MemoryCache(nameof(_usersCache));
             _commonAmountCache = new MemoryCache(nameof(_commonAmountCache));
             _blacklistedOrdersCache = new MemoryCache(nameof(_blacklistedOrdersCache));
+            _badUserProfitReportsCache = new MemoryCache(nameof(_badUserProfitReportsCache));
         }
 
         public void AddOrUpdateTrade(Trade trade)
@@ -142,6 +146,37 @@ namespace BinanceTrader.Core.DataAccess
         public bool IsOrderBlackListed(long orderId)
         {
             return _blacklistedOrdersCache[orderId.ToString()] != null;
+        }
+
+        public void AddOrUpdateBadUserProfitReport(BadUserProfitReport profit)
+        {
+            _badUserProfitReportsCache.Set(profit.UserId, profit, GetTimeoutPolicy());
+        }
+
+        public object GetTopBadUserProfitReportReasons()
+        {
+            var list = _badUserProfitReportsCache.Select(o => o.Value).Cast<BadUserProfitReport>().ToList();
+            var freqs = new Dictionary<string, int>();
+
+            foreach (var reason in list.SelectMany(p => p.Reasons))
+            {
+                if (freqs.TryGetValue(reason, out int count))
+                {
+                    freqs[reason] = count + 1;
+                }
+                else
+                {
+                    freqs.Add(reason, 1);
+                }
+            }
+
+            return freqs.OrderByDescending(f => f.Value);
+        }
+
+        public void FlushBadUserProfitReports()
+        {
+            var oldCache = Interlocked.Exchange(ref _badUserProfitReportsCache, new MemoryCache(nameof(_badUserProfitReportsCache)));
+            oldCache?.Dispose();
         }
     }
 }
