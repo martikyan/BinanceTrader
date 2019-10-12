@@ -156,21 +156,25 @@ namespace BinanceTrader.Core.DataAccess
         public object GetTopBadUserProfitReportReasons()
         {
             var list = _badUserProfitReportsCache.Select(o => o.Value).Cast<BadUserProfitReport>().ToList();
-            var freqs = new Dictionary<string, int>();
+            var freqs = new Dictionary<HashSet<string>, int>(HashSet<string>.CreateSetComparer());
 
-            foreach (var reason in list.SelectMany(p => p.Reasons))
+            foreach (var reasonSet in list.Select(p => p.Reasons))
             {
-                if (freqs.TryGetValue(reason, out int count))
+                if (freqs.TryGetValue(reasonSet, out int count))
                 {
-                    freqs[reason] = count + 1;
+                    freqs[reasonSet] = count + 1;
                 }
                 else
                 {
-                    freqs.Add(reason, 1);
+                    freqs.Add(reasonSet, 1);
                 }
             }
 
-            return freqs.OrderByDescending(f => f.Value);
+            var result = freqs
+                .OrderByDescending(f => f.Value)
+                .Select(f => new { Frequency = f.Value, Reasons = f.Key });
+
+            return result;
         }
 
         public void FlushBadUserProfitReports()

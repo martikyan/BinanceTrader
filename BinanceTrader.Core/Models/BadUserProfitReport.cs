@@ -7,9 +7,9 @@ namespace BinanceTrader.Core.Models
         private BadUserProfitReport()
         { }
 
-        public List<string> Reasons { get; private set; }
+        public HashSet<string> Reasons { get; private set; }
 
-        public static BadUserProfitReport Create(UserProfitReport profit, List<string> reasons)
+        public static BadUserProfitReport Create(UserProfitReport profit, HashSet<string> reasons)
         {
             var result = new BadUserProfitReport()
             {

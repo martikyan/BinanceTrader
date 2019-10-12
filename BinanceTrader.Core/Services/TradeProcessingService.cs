@@ -106,32 +106,32 @@ namespace BinanceTrader.Core.Services
             badProfit = null;
             if (result == false && userProfit.IsFullReport)
             {
-                var reasonList = new List<string>();
-                badProfit = BadUserProfitReport.Create(userProfit, reasonList);
+                var reasonSet = new HashSet<string>();
+                badProfit = BadUserProfitReport.Create(userProfit, reasonSet);
 
                 if (userProfit.TotalTradesCount < l.MinimalTraderTradesCount)
                 {
-                    reasonList.Add(nameof(userProfit.TotalTradesCount));
+                    reasonSet.Add(nameof(userProfit.TotalTradesCount));
                 }
 
                 if (userProfit.SuccessFailureRatio < l.MinimalSuccessFailureRatio)
                 {
-                    reasonList.Add(nameof(userProfit.SuccessFailureRatio));
+                    reasonSet.Add(nameof(userProfit.SuccessFailureRatio));
                 }
 
                 if (userProfit.AverageTradesPerHour > l.MaximalTraderTradesPerHour)
                 {
-                    reasonList.Add(nameof(userProfit.AverageTradesPerHour));
+                    reasonSet.Add(nameof(userProfit.AverageTradesPerHour));
                 }
 
                 if (userProfit.AverageProfitPerHour < l.MinimalTraderProfitPerHourPercentage)
                 {
-                    reasonList.Add(nameof(userProfit.AverageProfitPerHour));
+                    reasonSet.Add(nameof(userProfit.AverageProfitPerHour));
                 }
 
                 if (userProfit.MinimalTradeThreshold < TimeSpan.FromSeconds(l.MinimalTraderActivityThresholdSeconds))
                 {
-                    reasonList.Add(nameof(userProfit.MinimalTradeThreshold));
+                    reasonSet.Add(nameof(userProfit.MinimalTradeThreshold));
                 }
             }
 
