@@ -5,6 +5,7 @@ using Binance.Net;
 using Binance.Net.Objects;
 using BinanceTrader.Core.DataAccess;
 using BinanceTrader.Core.Models;
+using BinanceTrader.Core.Services;
 using CryptoExchange.Net.Authentication;
 using Serilog;
 
@@ -13,6 +14,7 @@ namespace BinanceTrader.Core.AutoTrader
     public class BinanceAutoTrader : IAutoTrader
     {
         private readonly object _lockObject = new object();
+        private readonly AttempCalculatorService _attempCalculator;
         private readonly CoreConfiguration _config;
         private readonly SymbolPair _symbolPair;
         private readonly IRepository _repo;
@@ -23,9 +25,10 @@ namespace BinanceTrader.Core.AutoTrader
         private long _lockedDueToOrderId;
         private bool _isTradingLocked;
 
-        public BinanceAutoTrader(CoreConfiguration config, IRepository repo, ILogger logger)
+        public BinanceAutoTrader(CoreConfiguration config, AttempCalculatorService attempCalculator, IRepository repo, ILogger logger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _attempCalculator = attempCalculator ?? throw new ArgumentNullException(nameof(attempCalculator));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _symbolPair = SymbolPair.Create(_config.FirstSymbol, _config.SecondSymbol);
@@ -161,6 +164,12 @@ namespace BinanceTrader.Core.AutoTrader
                 }
             }
 
+            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
+            {
+                _logger.Information("Report was not targeting our currency symbol.");
+                return;
+            }
+
             var traderUser = _repo.GetUserById(e.UserId);
             if (traderUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
             {
@@ -182,6 +191,12 @@ namespace BinanceTrader.Core.AutoTrader
 
             if (AttachedUser == null || AttachedUser?.Identifier == e.UserId)
             {
+                if (!_attempCalculator.IsSucceededAttemp())
+                {
+                    _logger.Information("Skipping trade due to low attemps count.");
+                    return;
+                }
+
                 if (AttachedUser == null)
                 {
                     _logger.Information($"Attaching to user with Id: {e.UserId}");
@@ -191,7 +206,6 @@ namespace BinanceTrader.Core.AutoTrader
                 }
 
                 _logger.Information("Attached user traded. Repeating actions.");
-
                 using (var client = CreateBinanceClient())
                 {
                     var trade = _repo.GetTradeById(e.TradeId);

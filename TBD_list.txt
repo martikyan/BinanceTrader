@@ -3,7 +3,6 @@
 3. Let the tradeRegistrarService fire both UserTraded and ProfitableUserTraded events
 4. Add averageProfitPerTrade
 5. Calculate fees for each user
-6. Remove target currency of the profit, we should track them both
-7. The event based architecture seems not to be well, try to refactor
-8. Validate AntiForgeryToken
-9. Add StyleCop analyzer
+6. The event based architecture seems not to be well, try to refactor
+7. Validate AntiForgeryToken
+8. Add StyleCop analyzer

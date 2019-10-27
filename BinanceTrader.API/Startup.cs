@@ -34,6 +34,7 @@ namespace BinanceTrader.API
                 .AddSingleton<UserProcessingService>()
                 .AddSingleton<TradeRegistrarService>()
                 .AddSingleton<TradeProcessingService>()
+                .AddSingleton<AttempCalculatorService>()
                 .AddSingleton<IRepository, Repository>();
 
             if (config.EnableAutoTrade)
