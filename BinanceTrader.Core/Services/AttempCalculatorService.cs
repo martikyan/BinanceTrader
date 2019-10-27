@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Runtime.Caching;
 
 namespace BinanceTrader.Core.Services
@@ -21,17 +22,21 @@ namespace BinanceTrader.Core.Services
 
         public bool IsSucceededAttemp()
         {
-            var result = false;
-            var tradesCount = _tradeAttempts.GetCount();
-            if (tradesCount >= _config.Limiters.AttempsPassCount)
+            var tradeIndicators = _tradeAttempts.ToList();
+            if (tradeIndicators.Count >= _config.Limiters.AttempsPassCount)
             {
-                result = true;
+                foreach (var i in tradeIndicators)
+                {
+                    _tradeAttempts.Remove(i.Key);
+                }
+
+                return true;
             }
 
             _tradeAttempts.Add(_rotatingKey.ToString(), true, GetTimeoutPolicy());
             _rotatingKey = unchecked(_rotatingKey + 1);
 
-            return result;
+            return false;
         }
 
         private CacheItemPolicy GetTimeoutPolicy()
