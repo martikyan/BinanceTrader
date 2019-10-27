@@ -42,14 +42,9 @@ namespace BinanceTrader.Core.Services
                 trades.Add(trade);
             }
 
-            var walletsForCurrency1 = user.WalletsHistory.Where(w => w.Symbol == _config.FirstSymbol);
-            var walletsForCurrency2 = user.WalletsHistory.Where(w => w.Symbol == _config.SecondSymbol);
-            var profit1 = CalculateProfitPerHour(walletsForCurrency1);
-            var profit2 = CalculateProfitPerHour(walletsForCurrency2);
-
-            var selectedWallets = profit1 > profit2 ? walletsForCurrency1.ToList() : walletsForCurrency2.ToList();
-            profit.AverageProfitPerHour = profit1 > profit2 ? profit1 : profit2;
-            profit.CurrencySymbol = profit1 > profit2 ? _config.FirstSymbol : _config.SecondSymbol;
+            var selectedWallets = user.WalletsHistory.Where(w => w.Symbol == _config.TargetCurrencySymbol).ToList();
+            profit.AverageProfitPerHour = CalculateProfitPerHour(selectedWallets);
+            profit.CurrencySymbol = _config.TargetCurrencySymbol;
 
             var lastTrade = _repository.GetTradeById(user.CurrentWallet.WalletCreatedFromTradeId);
             if (DateTime.UtcNow - lastTrade.TradeTime > TimeSpan.FromSeconds(_config.Limiters.MaximalAllowedTradeSyncSeconds))
@@ -121,7 +116,7 @@ namespace BinanceTrader.Core.Services
             }
         }
 
-        private static double CalculateProfitPerHour(IEnumerable<Wallet> wallets)
+        private static double CalculateProfitPerHour(List<Wallet> wallets)
         {
             var firstWallet = wallets.FirstOrDefault();
             var lastWallet = wallets.LastOrDefault();

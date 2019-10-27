@@ -161,6 +161,12 @@ namespace BinanceTrader.Core.AutoTrader
                 }
             }
 
+            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
+            {
+                _logger.Information("Report was not targeting our currency symbol.");
+                return;
+            }
+
             var traderUser = _repo.GetUserById(e.UserId);
             if (traderUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
             {
