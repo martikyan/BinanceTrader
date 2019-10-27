@@ -92,7 +92,6 @@ namespace BinanceTrader.Core.Services
             return
                 userProfit.IsFullReport &&
                 userProfit.TotalTradesCount >= l.MinimalTraderTradesCount &&
-                userProfit.CurrencySymbol == _config.TargetCurrencySymbol &&
                 userProfit.SuccessFailureRatio >= l.MinimalSuccessFailureRatio &&
                 userProfit.AverageTradesPerHour <= l.MaximalTraderTradesPerHour &&
                 userProfit.AverageProfitPerHour >= l.MinimalTraderProfitPerHourPercentage &&

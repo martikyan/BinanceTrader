@@ -33,12 +33,6 @@ namespace BinanceTrader.Core.AutoTrader
 
         private void HandleEvent(object sender, ProfitableUserTradedEventArgs e)
         {
-            if (e.Report.CurrencySymbol != _config.TargetCurrencySymbol)
-            {
-                _logger.Information("Report was not targeting our currency symbol.");
-                return;
-            }
-
             var eventOwnerUser = _repo.GetUserById(e.UserId);
             if (eventOwnerUser.CurrentWallet.Symbol == CurrentWallet.Symbol)
             {
