@@ -194,6 +194,7 @@ namespace BinanceTrader.Core.AutoTrader
                 if (!_attempCalculator.IsSucceededAttemp())
                 {
                     _logger.Information("Skipping trade due to low attemps count.");
+                    return;
                 }
 
                 if (AttachedUser == null)
